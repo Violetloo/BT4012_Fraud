@@ -45,3 +45,7 @@ Use only supplied competition data. Unknown labels are excluded from supervised 
 The final student-number notebook must reproduce preprocessing, feature engineering, validation and submission generation. The final report must be at most four pages and contain the GitHub repository link.
 
 According to the provided instructions, Kaggle submissions close on 24 October 2026 at 11:55 PM Singapore time. The report is due on 25 October 2026 at 11:59 PM Singapore time.
+
+## Stage 2 validation setup
+
+Prepared but not executed: [stage2/README.md](stage2/README.md). Run `python stage2/check_splits.py` to generate partition counts without training models. The reusable evaluator is in `src/validation.py`. The experiment log has not been populated.

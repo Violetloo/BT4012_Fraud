@@ -1,4 +1,5 @@
-# Versions used for the Stage 1 inspection. Extend for later stages.
 numpy==2.2.6
 pandas==2.3.2
 matplotlib==3.10.6
+scipy==1.16.2
+scikit-learn==1.7.2

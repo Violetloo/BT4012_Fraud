@@ -1,1 +1,2 @@
-experiment_id,date,description,feature_set,model,parameters,split_id,validation_auc,public_auc,submission_file,notes
+run_id,timestamp_utc,name,description,model,random_states,n_features,feature_hash,auc_fold1,auc_fold2,auc_fold3,auc_fold4,auc_mean,auc_std,auc_min,ap_mean,auc_horizon,ap_horizon,n_convergence_warnings,n_runtime_warnings,n_other_warnings,splits,runtime_s,git_commit,git_dirty,code_hash,public_lb,notes
+20260921-061125-sanity_random,2026-09-21T06:11:25+00:00,sanity_random,Random scores; expected AUC about 0.5,RandomScores(),"{""random_state"": 42}",159,d81d7467,0.4843,0.4988,0.49899,0.50977,0.49796,0.00905,0.4843,0.17248,0.50177,0.15022,0,0,0,fold1:1-15>16-20;fold2:1-20>21-25;fold3:1-25>26-30;fold4:1-30>31-35;horizon:1-21>22-35,0.1,34d18fc,True,ab1ad34a40ae,,

@@ -1,15 +1,5 @@
-# Keep competition data and predictions local
-data/*
-!data/.gitkeep
-submissions/*
-!submissions/.gitkeep
-# Environments and caches
-.venv/
-venv/
+data/
+submissions/
+experiments/oof/
 __pycache__/
-*.py[cod]
 .ipynb_checkpoints/
-.DS_Store
-.env
-.env.*
-stage1/run_log.txt
