@@ -1,0 +1,4 @@
+# Versions used for the Stage 1 inspection. Extend for later stages.
+numpy==2.2.6
+pandas==2.3.2
+matplotlib==3.10.6
