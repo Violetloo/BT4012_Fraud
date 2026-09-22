@@ -136,6 +136,27 @@ def code_hash():
     return h.hexdigest()[:12]
 
 
+def frame_hash(frame, feature_cols):
+    """Content hash of the identifier, label and feature values used for training.
+
+    Changes if the input data, the feature-building logic or the column order
+    changes, so a submission can prove it used exactly the validated inputs.
+    Computed over all rows passed in (including unknown-label rows).
+    """
+    cols = ["txId", "time_step", "label"] + list(feature_cols)
+    values = pd.util.hash_pandas_object(frame[cols], index=False).values
+    return hashlib.sha256(values.tobytes() + json.dumps(cols).encode()).hexdigest()[:16]
+
+
+def warning_summary(caught):
+    """Counts per warning category plus up to 20 distinct messages."""
+    counts = {}
+    for w in caught:
+        counts[w.category.__name__] = counts.get(w.category.__name__, 0) + 1
+    messages = sorted({f"{w.category.__name__}: {str(w.message)[:200]}" for w in caught})[:20]
+    return {"counts": counts, "messages": messages}
+
+
 def _feature_hash(cols):
     return hashlib.md5(json.dumps(sorted(cols)).encode()).hexdigest()[:8]
 
@@ -299,6 +320,7 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
             "params": {k: _jsonable(v) for k, v in _params(probe).items()},
             "random_states": {k: _jsonable(v) for k, v in rs.items()},
             "splits": [asdict(s) for s in splits], "feature_hash": fhash, "n_features": len(feature_cols),
+            "feature_columns": list(feature_cols), "data_hash": frame_hash(frame, feature_cols),
             "metrics": res.reset_index().to_dict(orient="records"), "summary": summary,
             "per_step": per_step, "warnings": warn_counts,
             "warning_messages": sorted({f"{w.category.__name__}: {str(w.message)[:200]}" for _, w in all_warnings})[:20],

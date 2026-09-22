@@ -9,8 +9,9 @@ Stage 3 trains the first real models through `evaluate()`, decides whether to ke
 | `src/features.py` | Named feature sets: `raw_notime` (159 features) and `raw_all` (165). Later stages add graph features here |
 | `src/models.py` | Named model factories: `logreg` and `hgb`, every `random_state` fixed |
 | `src/reporting.py` | Compares two `evaluate()` results; reads and updates the experiment log |
-| `stage3/run_baselines.py` | Runs 2 models × 2 feature sets, prints the time-feature comparison and a ranking |
-| `stage3/make_submission.py` | Retrains a validated configuration on all labelled rows and writes a checked submission file |
+| `stage3/run_baselines.py` | Runs 2 models × 2 feature sets, prints the time-feature comparison, a reference ranking and the recommended submission. Outputs are suffixed by version (`_v1`, `_v2`, …) |
+| `stage3/investigate_lr_warnings.py` | Tests whether the runtime warnings affected logistic regression (arithmetic and optimisation checks) |
+| `stage3/make_submission.py` | Retrains the configuration of one named validation run on all labelled rows and writes a checked submission file |
 | `stage3/record_lb.py` | Writes the Kaggle public score back into the experiment log |
 
 ## Models
@@ -20,47 +21,65 @@ Stage 3 trains the first real models through `evaluate()`, decides whether to ke
 
 Both use fixed settings with no early stopping and no class weighting. The model retrained for submission therefore uses exactly the validated configuration, and class weighting is tested in Stage 4 rather than assumed.
 
-## Time-feature decision rule
+## Decision order
 
-The Stage 1 starting hypothesis is to exclude `feat_100`, `feat_101`, `feat_103`, `feat_136`, `feat_137` and `feat_139`. `run_baselines.py` compares `raw_all` with `raw_notime` for each model on identical splits and suggests including them only if all three hold:
+Decisions are made in this order, and the earlier one takes precedence:
 
-1. the mean fold AUC improves,
-2. at least 3 of the 4 folds improve, and
-3. the horizon AUC does not get worse.
+1. **Feature set, by the conservative time-feature rule.** The Stage 1 starting hypothesis is to exclude `feat_100`, `feat_101`, `feat_103`, `feat_136`, `feat_137` and `feat_139`. They are included only if, for `hgb`, all three hold: the mean fold AUC improves, at least 3 of the 4 folds improve, and the horizon AUC does not get worse. The rule is conservative on purpose: these features are almost perfectly ordered by time, and test steps (36–49) lie beyond all training steps, so a small gain on 5-step blocks may not carry over. The logreg comparison is reported for reference.
+2. **Model, within the chosen feature set.** The best mean fold AUC within that feature set is recommended, unless a close runner-up (within about 0.005) has a clearly better minimum fold, horizon AUC and weak-step AUC.
 
-Otherwise they stay excluded. The rule is deliberately conservative: these features are almost perfectly ordered by time, and test steps (36–49) lie beyond all training steps, so a gain on 5-step validation blocks may not carry over. If the two models disagree, prefer the `hgb` result, since tree ensembles are the main model family from here on, and note the disagreement in your report.
+The ranking across all four configurations is for reference only. In v1 it placed `hgb_raw_all` first by 0.0007, a difference far smaller than the variation between folds, but the feature rule (2 of 4 folds improved) keeps the features excluded. Describe `raw_notime` as the conservative rule-based choice, not as the highest validation AUC.
 
-## Choosing the configuration to submit
+## Horizon diagnostics
 
-`run_baselines.py` ranks the four configurations by mean fold AUC. Submit the top one unless a close runner-up (within about 0.005 in mean fold AUC) has a clearly better minimum fold and horizon AUC. In that case prefer the more stable one. Record the reason either way.
+Every comparison reports the horizon AUC and the **weak-step AUC**: the horizon split restricted to steps 24, 29, 31 and 32, where the v1 `hgb` baseline scored 0.74–0.82 while most other steps scored above 0.95. These steps were identified from a validation result, so use them to diagnose, not as a target to tune against. The cause of the weakness is not established; one consistent explanation is illicit behaviour that appears after the training window.
+
+## Logistic regression: provisional
+
+The logreg runs recorded about 3,700 runtime warnings (overflow, invalid value, divide by zero in matrix multiplication). Finite predictions alone do not show that these are harmless, so logreg results stay provisional until `investigate_lr_warnings.py` passes. It checks that:
+
+- **A. Arithmetic:** decision values recomputed without the BLAS routine match to floating-point precision.
+- **B. Optimisation:** lbfgs and a second solver (newton-cholesky), both run to a tight tolerance, reach the same coefficients and AUC.
+
+It also records where the warnings arise. The `hgb` runs recorded no warnings.
+
+## Submissions reproduce one named run
+
+`make_submission.py` requires `--run-id` and refuses to build unless the model's full parameters (from `get_params`, not the printed representation), the ordered feature list, and a hash of the training data values all match that run's record. The data hash covers identifiers, labels and every feature value, so it changes if the input files, the feature-building logic or the column order change. The submission record also stores SHA-256 hashes of the input files and the categories and messages of any warnings.
+
+Runs logged before this version (the v1 baselines) have no data hash or ordered feature list. They are refused unless you pass `--allow-legacy-run`, which still checks parameters and features. Prefer rerunning with a new version suffix.
 
 ## How to run
 
 From the repo root, with the competition CSVs in `data/`:
 
 ```bash
-# 1. Baselines and time-feature comparison (a few minutes)
-python3 stage3/run_baselines.py
+# 1. Baselines, time-feature comparison and recommendation (a few minutes)
+python3 stage3/run_baselines.py --version v2
 
-# 2. Build the submission for your chosen configuration, e.g.
-python3 stage3/make_submission.py --model hgb --features raw_notime
+# 2. Investigate the logistic-regression warnings
+python3 stage3/investigate_lr_warnings.py
 
-# 3. Upload the CSV on the competition's Submit page, then record the public score, e.g.
+# 3. Build the submission; run_baselines.py prints the exact command with the run id, e.g.
+python3 stage3/make_submission.py --model hgb --features raw_notime --run-id <run_id>
+
+# 4. Upload the CSV on the competition's Submit page, then record the public score
 python3 stage3/record_lb.py --submission submissions/<file>.csv --score 0.XXXXX
 ```
 
-To rerun baselines after a code change, use a new suffix: `python3 stage3/run_baselines.py --version v2`. Reused experiment names are rejected.
+Reused experiment names are rejected, so each rerun needs a new `--version`.
 
 ## What each script checks
 
-- **`make_submission.py`** refuses a configuration that was never evaluated (the same model parameters and feature set must appear in the log). It trains on all labelled rows, steps 1–35, excluding unknowns. The file must have 15,329 rows and exactly the columns `index,target`, with `index` identical to `sample_submission.csv` in value and order, and every prediction finite and within [0, 1]. It re-reads the written file to confirm, and saves a JSON record next to it with the model parameters, features, code and git state, and a prediction summary.
+- **`make_submission.py`** refuses to build unless parameters, ordered features and data hash match the named run (see above). It trains on all labelled rows, steps 1–35, excluding unknowns. The file must have 15,329 rows and exactly the columns `index,target`, with `index` identical to `sample_submission.csv` in value and order, and every prediction finite and within [0, 1]. It re-reads the written file to confirm, and saves a JSON record next to it with the model parameters, features, code and git state, and a prediction summary.
 - **`record_lb.py`** attaches the public score to the validated run through that JSON record, so each leaderboard score is traceable to its validation result.
 
 ## What to send back
 
-1. The full output of `run_baselines.py`: both comparison tables with their suggestions, and the ranking.
-2. The output of `make_submission.py`.
-3. The public leaderboard score, after recording it.
+1. The full output of `run_baselines.py`: comparison tables, reference ranking and recommendation.
+2. The output of `investigate_lr_warnings.py`, including its A and B verdicts.
+3. The output of `make_submission.py`.
+4. The public leaderboard score, after recording it.
 
 ## Notes
 

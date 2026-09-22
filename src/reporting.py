@@ -2,10 +2,23 @@
 import csv
 
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from src.validation import FOLDS, LOG_COLUMNS, LOG_PATH
 
 FOLD_NAMES = [s.name for s in FOLDS]
+
+# Horizon steps where the Stage 3 baseline (hgb_raw_notime_v1) was clearly weaker.
+# Used as a diagnostic in every later comparison. Because they were identified from
+# a validation result, do not tune models specifically to maximise this number.
+HORIZON_WEAK_STEPS = [24, 29, 31, 32]
+
+
+def weak_step_auc(result, steps=HORIZON_WEAK_STEPS, split="horizon"):
+    """AUC over the horizon predictions restricted to the given steps."""
+    p = result["predictions"]
+    p = p[(p["split"] == split) & p["time_step"].isin(steps)]
+    return float(roc_auc_score(p["label"], p["pred"])) if p["label"].nunique() == 2 else float("nan")
 
 
 def compare_results(base, other, base_label, other_label):
@@ -18,6 +31,7 @@ def compare_results(base, other, base_label, other_label):
         "folds_improved": int((d > 0).sum()),
         "delta_fold_min": float(b.loc[FOLD_NAMES].min() - a.loc[FOLD_NAMES].min()),
         "delta_horizon": float(table.loc["horizon", "delta"]),
+        "delta_weak_steps": weak_step_auc(other) - weak_step_auc(base),
     }
     return table, summary
 
