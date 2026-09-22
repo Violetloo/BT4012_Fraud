@@ -1,0 +1,3 @@
+model,delta_fold_mean,folds_improved,delta_fold_min,delta_horizon,suggestion
+logreg,-0.00269,1,-0.00349,-0.00067,keep excluded
+hgb,0.00071,2,0.0037,0.0,keep excluded

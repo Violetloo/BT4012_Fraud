@@ -1,0 +1,368 @@
+{
+  "run_id": "20260922-045346-logreg_raw_all_v1",
+  "timestamp_utc": "2026-09-22T04:53:46+00:00",
+  "name": "logreg_raw_all_v1",
+  "description": "Stage 3 baseline: logreg on raw_all (165 features)",
+  "notes": "",
+  "model": "Pipeline(steps=[('standardscaler', StandardScaler()),\n                ('logisticregression',\n                 LogisticRegression(max_iter=2000, random_state=42))])",
+  "params": {
+    "memory": null,
+    "steps": "[('standardscaler', StandardScaler()), ('logisticregression', LogisticRegression(max_iter=2000, random_state=42))]",
+    "transform_input": null,
+    "verbose": false,
+    "standardscaler": "StandardScaler()",
+    "logisticregression": "LogisticRegression(max_iter=2000, random_state=42)",
+    "standardscaler__copy": true,
+    "standardscaler__with_mean": true,
+    "standardscaler__with_std": true,
+    "logisticregression__C": 1.0,
+    "logisticregression__class_weight": null,
+    "logisticregression__dual": false,
+    "logisticregression__fit_intercept": true,
+    "logisticregression__intercept_scaling": 1,
+    "logisticregression__l1_ratio": null,
+    "logisticregression__max_iter": 2000,
+    "logisticregression__multi_class": "deprecated",
+    "logisticregression__n_jobs": null,
+    "logisticregression__penalty": "l2",
+    "logisticregression__random_state": 42,
+    "logisticregression__solver": "lbfgs",
+    "logisticregression__tol": 0.0001,
+    "logisticregression__verbose": 0,
+    "logisticregression__warm_start": false
+  },
+  "random_states": {
+    "logisticregression__random_state": 42
+  },
+  "splits": [
+    {
+      "name": "fold1",
+      "train_steps": [
+        1,
+        15
+      ],
+      "val_steps": [
+        16,
+        20
+      ]
+    },
+    {
+      "name": "fold2",
+      "train_steps": [
+        1,
+        20
+      ],
+      "val_steps": [
+        21,
+        25
+      ]
+    },
+    {
+      "name": "fold3",
+      "train_steps": [
+        1,
+        25
+      ],
+      "val_steps": [
+        26,
+        30
+      ]
+    },
+    {
+      "name": "fold4",
+      "train_steps": [
+        1,
+        30
+      ],
+      "val_steps": [
+        31,
+        35
+      ]
+    },
+    {
+      "name": "horizon",
+      "train_steps": [
+        1,
+        21
+      ],
+      "val_steps": [
+        22,
+        35
+      ]
+    }
+  ],
+  "feature_hash": "d6c1dff7",
+  "n_features": 165,
+  "metrics": [
+    {
+      "split": "fold1",
+      "auc": 0.9443915580868061,
+      "ap": 0.7615970172245411,
+      "n_val": 3375,
+      "n_illicit_val": 619
+    },
+    {
+      "split": "fold2",
+      "auc": 0.8974918735362126,
+      "ap": 0.5681183841854086,
+      "n_val": 5311,
+      "n_illicit_val": 566
+    },
+    {
+      "split": "fold3",
+      "auc": 0.9315871507790136,
+      "ap": 0.7181562116418465,
+      "n_val": 2705,
+      "n_illicit_val": 617
+    },
+    {
+      "split": "fold4",
+      "auc": 0.9288373944895683,
+      "ap": 0.6659539297353957,
+      "n_val": 4330,
+      "n_illicit_val": 690
+    },
+    {
+      "split": "horizon",
+      "auc": 0.8283568536777669,
+      "ap": 0.467735587928101,
+      "n_val": 11705,
+      "n_illicit_val": 1773
+    }
+  ],
+  "summary": {
+    "auc_mean": 0.9255769942229002,
+    "auc_std": 0.017244665907916866,
+    "auc_min": 0.8974918735362126,
+    "ap_mean": 0.678456385696798,
+    "auc_horizon": 0.8283568536777669,
+    "ap_horizon": 0.467735587928101,
+    "runtime_s": 0.5
+  },
+  "per_step": [
+    {
+      "split": "fold1",
+      "time_step": 16,
+      "n_illicit": 128,
+      "auc": 0.992226368159204
+    },
+    {
+      "split": "fold1",
+      "time_step": 17,
+      "n_illicit": 99,
+      "auc": 0.9717682442401544
+    },
+    {
+      "split": "fold1",
+      "time_step": 18,
+      "n_illicit": 52,
+      "auc": 0.9379707829262726
+    },
+    {
+      "split": "fold1",
+      "time_step": 19,
+      "n_illicit": 80,
+      "auc": 0.9492293233082707
+    },
+    {
+      "split": "fold1",
+      "time_step": 20,
+      "n_illicit": 260,
+      "auc": 0.8704447115384616
+    },
+    {
+      "split": "fold2",
+      "time_step": 21,
+      "n_illicit": 100,
+      "auc": 0.9282255083179297
+    },
+    {
+      "split": "fold2",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9628179344611381
+    },
+    {
+      "split": "fold2",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.9099530797644005
+    },
+    {
+      "split": "fold2",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.6791273349914755
+    },
+    {
+      "split": "fold2",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9580188007406353
+    },
+    {
+      "split": "fold3",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.8904146872525732
+    },
+    {
+      "split": "fold3",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9796245421245421
+    },
+    {
+      "split": "fold3",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 0.9881761749926101
+    },
+    {
+      "split": "fold3",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.9251164547400227
+    },
+    {
+      "split": "fold3",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9539655219517527
+    },
+    {
+      "split": "fold4",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.8591465700362364
+    },
+    {
+      "split": "fold4",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.9222091075463037
+    },
+    {
+      "split": "fold4",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9701477012689828
+    },
+    {
+      "split": "fold4",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.9409702589618908
+    },
+    {
+      "split": "fold4",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9696925162844059
+    },
+    {
+      "split": "horizon",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9675105485232067
+    },
+    {
+      "split": "horizon",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.912715051079831
+    },
+    {
+      "split": "horizon",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.6867144428125439
+    },
+    {
+      "split": "horizon",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9651046859421735
+    },
+    {
+      "split": "horizon",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.854785233570863
+    },
+    {
+      "split": "horizon",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9812271062271063
+    },
+    {
+      "split": "horizon",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 0.9797812592373634
+    },
+    {
+      "split": "horizon",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.7125087678279167
+    },
+    {
+      "split": "horizon",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9573532224134634
+    },
+    {
+      "split": "horizon",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.6408378108209422
+    },
+    {
+      "split": "horizon",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.7317154592222997
+    },
+    {
+      "split": "horizon",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9117432910339089
+    },
+    {
+      "split": "horizon",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.903709148479023
+    },
+    {
+      "split": "horizon",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9338288975907614
+    }
+  ],
+  "warnings": {
+    "n_convergence_warnings": 0,
+    "n_runtime_warnings": 3723,
+    "n_other_warnings": 0
+  },
+  "warning_messages": [
+    "RuntimeWarning: divide by zero encountered in matmul",
+    "RuntimeWarning: invalid value encountered in matmul",
+    "RuntimeWarning: overflow encountered in matmul"
+  ],
+  "environment": {
+    "python": "3.13.7",
+    "numpy": "2.2.6",
+    "pandas": "2.3.2",
+    "sklearn": "1.7.2",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O"
+  },
+  "git_commit": "111c4d1",
+  "git_dirty": "False",
+  "code_hash": "03634f940ec7"
+}
