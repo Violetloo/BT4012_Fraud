@@ -54,10 +54,12 @@ FOLDS = [
 ]
 HORIZON = Split("horizon", (1, 21), (22, 35))
 
-# Several long-horizon splits, for checking that a change holds up over long ranges
-# rather than on the single horizon split. Each validates up to 14 steps ahead;
-# h21 is the same split as HORIZON. Stage 4 showed a gain on one horizon split need
-# not transfer to the test set, so Stage 5 requires agreement across these.
+# Long-horizon splits, for checking that a change holds up over long ranges rather
+# than on the single horizon split. Three validate 14 steps (h15, h18, h21) and one
+# validates 11 steps (h24: steps 25-35, the end of the training data). They overlap
+# heavily and share training periods, so "3 of 4 improve" is a consistency check, not
+# four independent confirmations. h21 is the same split as HORIZON. Stage 4 showed a
+# gain on one horizon split need not transfer to the test set.
 MULTI_HORIZONS = [Split(f"h{k}", (1, k), (k + 1, min(k + 14, 35))) for k in (15, 18, 21, 24)]
 
 EXPERIMENT_DIR = REPO_ROOT / "experiments"
@@ -256,9 +258,10 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
     if require_random_state and any(v is None for v in rs.values()):
         unset = [k for k, v in rs.items() if v is None]
         raise ValueError(f"random_state not set for: {unset}. Set it explicitly in make_model.")
-    if log:
+    standard_folds = [s.name for s in folds] == [s.name for s in FOLDS]
+    if log and standard_folds:
         _check_log_header()
-        if not allow_duplicate_name and _name_already_logged(name):
+        if standard_folds and not allow_duplicate_name and _name_already_logged(name):
             raise ValueError(f"Experiment name '{name}' is already in {LOG_PATH.name}; choose a new name.")
 
     start = time.time()
@@ -336,6 +339,14 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
             "git_commit": commit, "git_dirty": dirty, "code_hash": chash,
         }
         (RUN_DIR / f"{run_id}.json").write_text(json.dumps(record, indent=2, default=_jsonable))
+        if not standard_folds:
+            # Custom splits (e.g. the long-horizon set) get a full JSON record and saved
+            # predictions, but no row in experiment_log.csv, whose columns are fixed to
+            # the four standard folds.
+            if verbose:
+                print(f"custom splits: full record written to {RUN_DIR / (run_id + '.json')}, "
+                      "no experiment_log.csv row")
+            save_predictions = True
         row = {"run_id": run_id, "timestamp_utc": record["timestamp_utc"], "name": name,
                "description": description, "model": " ".join(repr(probe).split()),
                "random_states": json.dumps(record["random_states"]), "n_features": len(feature_cols),
@@ -345,11 +356,8 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
                **{k: (round(v, 5) if isinstance(v, float) else v) for k, v in summary.items()},
                **warn_counts}
         new = not LOG_PATH.exists()
-        with open(LOG_PATH, "a", newline="") as fh:
-            w = csv.DictWriter(fh, fieldnames=LOG_COLUMNS, lineterminator="\n")
-            if new:
-                w.writeheader()
-            w.writerow(row)
+        if standard_folds:
+            _write_log_row(row, new)
 
     if save_predictions:
         PRED_DIR.mkdir(parents=True, exist_ok=True)
@@ -358,3 +366,11 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
     return {"run_id": run_id, "folds": res, "summary": summary, "per_step": pd.DataFrame(per_step),
             "predictions": predictions, "warnings": warn_counts,
             "warning_messages": sorted({f"{w.category.__name__}: {str(w.message)[:200]}" for _, w in all_warnings})}
+
+
+def _write_log_row(row, new):
+    with open(LOG_PATH, "a", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=LOG_COLUMNS, lineterminator="\n")
+        if new:
+            w.writeheader()
+        w.writerow(row)

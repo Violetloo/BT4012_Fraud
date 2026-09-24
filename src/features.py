@@ -6,13 +6,21 @@ feature columns, time_step for grouping, and the edge list.
 from src.data import raw_feature_columns
 from src.graph_features import group_columns
 
-# Cumulative graph feature sets, one group added at a time (Stage 5).
+# Cumulative graph feature sets, one group added at a time (Stage 5). Because they
+# are cumulative, a poor result for a later set does not isolate that group: it still
+# contains the earlier ones. The isolated sets below test single groups on their own.
 GRAPH_STAGES = {
     "raw_g1": ["deg"],
     "raw_g2": ["deg", "avail"],
     "raw_g3": ["deg", "avail", "nbrmean"],
     "raw_g4": ["deg", "avail", "nbrmean", "nbrstats"],
     "raw_g5": ["deg", "avail", "nbrmean", "nbrstats", "comp"],
+    # isolated: raw features plus exactly one group
+    "raw_deg": ["deg"],
+    "raw_avl": ["avail"],
+    "raw_nbm": ["nbrmean"],
+    "raw_nbs": ["nbrstats"],
+    "raw_cmp": ["comp"],
 }
 NEEDS_GRAPH = set(GRAPH_STAGES)
 

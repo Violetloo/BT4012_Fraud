@@ -1,0 +1,4 @@
+feature_set,n_features,auc_fold_mean,auc_fold_min,auc_horizon,auc_weak_steps,auc_h15,auc_h18,auc_h21,auc_h24,auc_mh_mean,auc_mh_min,run_id
+raw_notime,159,0.98296,0.94558,0.91514,0.80236,0.91461,0.88478,0.91514,0.99697,0.92788,0.88478,20260924-071513-hgb_balanced_raw_notime_s5quick
+raw_g1,165,0.98451,0.95286,0.90469,0.77986,0.91332,0.8766,0.90469,0.99686,0.92287,0.8766,20260924-071550-hgb_balanced_raw_g1_s5quick
+raw_g3,490,0.9821,0.94335,0.88189,0.72917,0.91009,0.8809,0.88189,0.99654,0.91736,0.8809,20260924-071652-hgb_balanced_raw_g3_s5quick

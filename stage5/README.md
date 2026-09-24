@@ -14,28 +14,30 @@ Stage 4 taught the key lesson: `hgb_balanced` gained +0.0164 on one horizon spli
 2. the mean AUC over the **four** long-horizon splits improves, and
 3. at least **3 of those 4** splits improve.
 
-The long-horizon splits train on steps 1–k and validate the next 14 steps (or up to step 35) for k = 15, 18, 21, 24. `h21` is the same split as the usual horizon. Weak-step AUC is reported as a diagnostic only, never as an acceptance condition.
+The long-horizon splits train on steps 1–k and validate the following steps, for k = 15, 18, 21, 24: three 14-step windows (h15, h18, h21) and one 11-step window (h24: steps 25–35, the end of the training data). `h21` is the same split as the usual horizon. They share training periods and their validation windows overlap heavily, so "3 of 4 improve" is a **consistency check, not four independent confirmations**. Weak-step AUC is reported as a diagnostic only, never as an acceptance condition.
 
 ## Feature groups
 
 | Set | Adds | Columns |
 |---|---|---|
-| `raw_g1` | `deg_` degree: in, out, total, unique neighbours, in-share | 6 |
+| `raw_g1` | `deg_` degree: in, out, total, in-share | 4 |
 | `raw_g2` | `avl_` usable-neighbour counts and shares, per direction | ~6 |
 | `raw_g3` | `nbm_` mean of every supplied feature over predecessors and successors | 318 |
 | `raw_g4` | `nbs_` max/min/std over the 20 highest-variance features, per direction | 120 |
-| `raw_g5` | `cmp_` component size, usable share, degree share within the time step | 3 |
+| `raw_g5` | `cmp_` component size, usable share, and degree divided by component size | 3 |
+
+Isolated sets test one group on its own: `raw_deg`, `raw_avl`, `raw_nbm`, `raw_nbs`, `raw_cmp`. The cumulative sets cannot isolate a group, because each still contains the groups added before it.
 
 ## Leakage review, per group
 
 The guards in `evaluate()` check how rows are separated; they cannot certify a feature. Each group was reviewed by hand:
 
 - **`deg_`**: counts from the complete edge list, including neighbours with no feature row. No labels involved. Equally complete for train and test.
-- **`avl_`**: counts and shares of neighbours whose feature rows are *usable*. This uses label **availability**, never a label's value. Stage 1 established the reason: test nodes are missing about 39% of their neighbours' rows, so aggregating over labelled train neighbours (63%) matches test coverage (61%).
-- **`nbm_`, `nbs_`**: aggregates of supplied feature values over usable neighbours. No labels. The 20 features chosen for max/min/std are the highest-variance ones across all supplied rows, a label-free criterion.
+- **`avl_`**: counts and shares of neighbours whose feature rows are *usable*. This uses label **availability**, never a label's value. The reason: test nodes are missing about 39% of their neighbours' rows, so aggregating over labelled train neighbours (63%) matches test coverage (61%) — 47.1% vs 49.4% missing aggregates among the rows actually used. That those missing nodes are unlabelled test-period transactions remains a Stage 1 **hypothesis**; their labels and time steps are unobservable. Matching mean coverage does not prove the missingness patterns match, and aggregating over *all* available training neighbours has not been compared against it.
+- **`nbm_`, `nbs_`**: aggregates of supplied feature values over usable neighbours. No labels. The 20 features chosen for max/min/std are the highest-variance ones **within steps 1–15 only**. Every split trains on step 1 through k ≥ 15, so that window is historical for all of them. An earlier version chose them using all periods including test: no labels were involved, but later distributions would have informed features used in earlier validation blocks. "No labels used" is not the same as "no look-ahead".
 - **`cmp_`**: component sizes from the edge list. No labels.
 
-Every group is built once over train and test together. That is transductive (test feature values inform test-row features) but uses no labels, and the competition provides the full edge list and test features, so it is within the rules. Nothing here uses a neighbour's class.
+Every group is built once over train and test together. That is transductive: a test row's aggregates use its test-period neighbours' feature values. It uses no labels, the competition supplies the full edge list and test features, and nothing here uses a neighbour's class. The one place where look-ahead could have leaked into the *choice* of features (the max/min/std selection) is restricted to steps 1–15.
 
 ## Missing values
 
@@ -51,7 +53,7 @@ python3 stage5/run_graph_experiments.py
 python3 stage5/run_graph_experiments.py --sets raw_notime raw_g1 raw_g3 --version s5quick
 ```
 
-The features are cached in `data/derived/graph_features.pkl` (git-ignored) and rebuilt with `--rebuild-features`. `make_submission.py` attaches them automatically for any `raw_g*` feature set, so a submission reproduces exactly what was validated.
+The features are cached in `data/derived/graph_features.pkl` (git-ignored). The cache stores content hashes of train, test and the edge list plus the builder version and settings, and is rebuilt automatically when any of them differ, so a changed `--data-dir` or edge list cannot silently reuse old features. The submission-time data hash cannot catch that on its own, because it sees cached values as current. `--rebuild-features` forces a rebuild, and `attach()` checks unique ids and full coverage. `make_submission.py` attaches them automatically for any `raw_g*` feature set, so a submission reproduces exactly what was validated.
 
 ## Outputs
 
@@ -67,6 +69,6 @@ The features are cached in `data/derived/graph_features.pkl` (git-ignored) and r
 
 ## Notes
 
-- Each set is logged twice: the standard run (logged, named `<model>_<set>_<version>`) and the multi-horizon run (not logged, since the log's columns are fixed to the four folds).
 - If the sweep is too slow, run `--sets` in batches; the cache is shared.
-- A group that fails the rule is still worth reporting. "Graph aggregates did not improve long-horizon generalisation" is a real finding, and the review above explains what was tried.
+- State results at the level the experiments support: **none of the tested graph-feature configurations improved the long-horizon criterion**. A cumulative set that fails does not show that its newest group fails on its own; use the isolated sets for that.
+- Each set is evaluated twice: the standard-fold run (a row in `experiment_log.csv` plus a JSON record) and the long-horizon run (a JSON record and saved predictions, but no CSV row, since the log's columns are fixed to the four folds). Both are therefore auditable.

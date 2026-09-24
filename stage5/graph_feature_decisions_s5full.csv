@@ -1,0 +1,4 @@
+feature_set,compared_with,d_fold_mean,d_mh_mean,splits_improved,kept
+raw_g2,raw_notime,0.00035,-0.00247,2,False
+raw_g4,raw_notime,-0.00143,-0.01677,0,False
+raw_g5,raw_notime,-0.00406,-0.0085,1,False

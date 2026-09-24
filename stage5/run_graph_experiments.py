@@ -9,6 +9,10 @@ Feature groups are added cumulatively to the Stage 3 feature set (raw_notime):
     raw_g4  + nbrstats  max/min/std over the highest-variance features
     raw_g5  + comp      component size and usable share within the time step
 
+Isolated sets (raw + exactly one group) are also available: raw_deg, raw_avl,
+raw_nbm, raw_nbs, raw_cmp. Use them to test a group on its own, since a cumulative
+set still contains the groups added before it.
+
 The model is the Stage 4 selection (hgb_balanced), which handles missing values
 natively: aggregates are NaN for nodes with no usable neighbour, and are left as NaN
 rather than filled.
@@ -17,7 +21,9 @@ Acceptance rule (fixed before running; see stage5/README.md). A cumulative set
 replaces the previous one only if all three hold, judged against the previous set:
   1. fold-mean AUC is not worse by more than 0.002,
   2. the mean AUC over the four long-horizon splits improves, and
-  3. at least 3 of those 4 splits improve.
+  3. at least 3 of those 4 splits improve (they overlap heavily, so this is a
+     consistency check rather than four independent confirmations; three validate
+     14 steps and one, h24, validates 11).
 Condition 3 is the Stage 4 lesson: a gain on one horizon split did not transfer.
 
 Outputs: stage5/graph_feature_results_<version>.csv, stage5/multi_horizon_<version>.csv
@@ -64,8 +70,10 @@ for name in args.sets:
     cols = get_feature_columns(name, train)
     r = evaluate(f"{args.model}_{name}_{args.version}", get_model_factory(args.model), train, cols,
                  description=f"Stage 5 graph features: {args.model} on {name} ({len(cols)} features)")
+    # logged as a full JSON record with predictions; custom splits get no CSV row
     mh = evaluate(f"{args.model}_{name}_{args.version}_mh", get_model_factory(args.model), train, cols,
-                  folds=MULTI_HORIZONS, horizon=HORIZON, log=False, save_predictions=False, verbose=False)
+                  folds=MULTI_HORIZONS, horizon=HORIZON, log=True, verbose=False,
+                  description=f"Stage 5 long-horizon check: {args.model} on {name}")
     results[name] = (r, mh)
     mh_aucs = mh["folds"]["auc"].loc[[s.name for s in MULTI_HORIZONS]]
     print(f"  multi-horizon AUC: " + ", ".join(f"{k} {v:.4f}" for k, v in mh_aucs.items())
