@@ -33,7 +33,7 @@ from src.validation import evaluate  # noqa: E402
 
 OUT = Path(__file__).resolve().parent
 BASELINE = "hgb"
-TOL_FOLD_MEAN, TOL_WEAK = 0.002, 0.005
+TOL_FOLD_MEAN = 0.002
 
 p = argparse.ArgumentParser()
 p.add_argument("--data-dir", default=str(DATA_DIR))
@@ -72,8 +72,7 @@ tab["blend_fold_horizon"] = 0.5 * tab["auc_mean"] + 0.5 * tab["auc_horizon"]
 tab["d_fold_mean"] = tab["auc_mean"] - base["auc_mean"]
 tab["d_horizon"] = tab["auc_horizon"] - base["auc_horizon"]
 tab["d_weak_steps"] = tab["auc_weak_steps"] - base["auc_weak_steps"]
-tab["accepted"] = ((tab["d_fold_mean"] >= -TOL_FOLD_MEAN) & (tab["d_horizon"] > 0)
-                   & (tab["d_weak_steps"] >= -TOL_WEAK))
+tab["accepted"] = (tab["d_fold_mean"] >= -TOL_FOLD_MEAN) & (tab["d_horizon"] > 0)
 tab.loc[BASELINE, "accepted"] = False  # the baseline is the thing being beaten
 tab.round(5).to_csv(OUT / f"model_comparison_{args.version}.csv")
 
@@ -82,7 +81,7 @@ show = ["auc_mean", "auc_std", "auc_min", "auc_horizon", "auc_weak_steps", "ap_m
 print(f"=== All models (weak steps = horizon steps {HORIZON_WEAK_STEPS}) ===")
 print(tab.sort_values("blend_fold_horizon", ascending=False)[show].round(4).to_string())
 
-print(f"\n=== Against the Stage 3 baseline ({BASELINE}) ===")
+print(f"\n=== Against the Stage 3 baseline ({BASELINE}); d_weak_steps is diagnostic only ===")
 print(tab.drop(index=BASELINE)[["d_fold_mean", "d_horizon", "d_weak_steps", "accepted"]]
       .sort_values("d_horizon", ascending=False).round(4).to_string())
 
@@ -101,7 +100,9 @@ if pairs:
     print(cw.round(4).to_string(index=False))
     helped = int((cw["d_horizon"] > 0).sum())
     print(f"Class weighting improved horizon AUC for {helped} of {len(cw)} families. "
-          "AUC is rank-based, so weighting often changes little; keep it only where it helps.")
+          "Compare within a family only: the libraries differ in settings, in how weights enter the\n"
+          "objective and regularisation, and in how the ratio is derived (sklearn 'balanced' per fit,\n"
+          "'balanced_subsample' per bootstrap sample, XGBoost scale_pos_weight per training split).")
 
 accepted = tab[tab["accepted"]].sort_values("blend_fold_horizon", ascending=False)
 print("\n=== Recommendation ===")
@@ -113,7 +114,8 @@ else:
     best_run = accepted.iloc[0]["run_id"]
     print(f"{best} meets the rule: fold mean {accepted.iloc[0]['auc_mean']:.4f} "
           f"({accepted.iloc[0]['d_fold_mean']:+.4f}), horizon {accepted.iloc[0]['auc_horizon']:.4f} "
-          f"({accepted.iloc[0]['d_horizon']:+.4f}), weak steps {accepted.iloc[0]['d_weak_steps']:+.4f}.")
+          f"({accepted.iloc[0]['d_horizon']:+.4f}); weak-step change {accepted.iloc[0]['d_weak_steps']:+.4f} "
+          "(diagnostic, not part of the rule).")
     if len(accepted) > 1:
         print(f"Other accepted candidates: {', '.join(accepted.index[1:])}")
 print(f"Submit with:\n  python3 stage3/make_submission.py --model {best} --features {args.features} --run-id {best_run}")

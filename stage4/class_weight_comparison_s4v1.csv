@@ -1,0 +1,6 @@
+unweighted,weighted,d_fold_mean,d_horizon,d_weak_steps,d_ap_mean
+logreg,logreg_balanced,0.00314,-0.0091,-0.01003,-0.02422
+hgb,hgb_balanced,7e-05,0.01637,0.03706,0.00057
+rf,rf_balanced,0.00155,0.07759,0.12489,0.00039
+lgbm,lgbm_balanced,0.00205,0.0113,0.02533,0.0011
+xgb,xgb_weighted,-0.00478,-0.01148,-0.01322,-0.00469

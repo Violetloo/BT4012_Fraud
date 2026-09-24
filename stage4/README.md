@@ -6,13 +6,14 @@ Stage 4 asks two questions on identical splits: which model family generalises b
 
 Stage 3 showed why the fold mean alone is not enough: fold mean 0.983, public leaderboard 0.944, horizon 0.899. The test period spans 14 steps, so longer-range behaviour matters.
 
-A candidate replaces the baseline (`hgb`) only if **all three** hold:
+A candidate replaces the baseline (`hgb`) only if **both** hold:
 
-1. fold-mean AUC is not worse by more than **0.002**,
-2. horizon AUC is **strictly better**, and
-3. weak-step AUC (horizon steps 24, 29, 31, 32) is not worse by more than **0.005**.
+1. fold-mean AUC is not worse by more than **0.002**, and
+2. horizon AUC is **strictly better**.
 
-Accepted candidates are ordered by an equal blend of fold mean and horizon AUC. If nothing qualifies, the Stage 3 baseline stays. Fixing the rule in advance stops the choice drifting toward whatever looks best after the fact.
+Accepted candidates are ordered by an equal blend of fold mean and horizon AUC. That blend is an internal selection score, not an estimate of leaderboard AUC. If nothing qualifies, the Stage 3 baseline stays.
+
+**Weak-step AUC (horizon steps 24, 29, 31, 32) is reported but is not an acceptance condition.** Those steps were chosen after inspecting a validation result, so they are not independent evidence; fixing a rule in advance does not make previously inspected periods independent. The same caution applies in weaker form to the horizon split itself, which has now been examined several times: treat repeated selection on it as a source of optimism, and prefer changes that also hold up on the folds.
 
 ## Models compared
 
@@ -23,7 +24,7 @@ Accepted candidates are ordered by an equal blend of fold mean and horizon AUC. 
 | Random forest | `rf` | `rf_balanced` |
 | Extremely randomised trees | `extratrees` | — |
 | LightGBM (optional) | `lgbm` | `lgbm_balanced` |
-| XGBoost (optional) | `xgb` | `xgb_weighted` (`scale_pos_weight=7.57`) |
+| XGBoost (optional) | `xgb` | `xgb_weighted` (`scale_pos_weight` recomputed inside each fit) |
 
 All use fixed settings with no early stopping, so any of them can be retrained for submission exactly as validated. Hyperparameter tuning comes in Stage 6, using an inner chronological holdout inside each training window.
 
@@ -33,11 +34,19 @@ LightGBM and XGBoost are optional. If they aren't installed, the script says so 
 brew install libomp && pip install lightgbm xgboost
 ```
 
-If you install them, add the versions to `requirements.txt` (`pip show lightgbm xgboost`).
+After installing, pin the versions:
+
+```bash
+python3 -c "import lightgbm, xgboost; print(f'lightgbm=={lightgbm.__version__}'); print(f'xgboost=={xgboost.__version__}')" >> requirements.txt
+```
 
 ## Class weighting
 
-AUC is rank-based, so weighting the rare class often changes little; it mainly shifts the probability scale. The script reports each family's weighted-minus-unweighted deltas so the decision rests on evidence rather than the common assumption that imbalance always needs weighting. Keep it only where it helps.
+Weighting the rare class changes the fitted model, not just the probability scale: the training objective changes, so splits and the resulting ranking can change too. The script reports each family's weighted-minus-unweighted deltas so the decision rests on evidence rather than on the assumption that imbalance always needs weighting.
+
+**Compare within a family only.** Families differ in their settings, in how weights enter the objective and the regularisation, and in how the ratio is derived: scikit-learn's `balanced` recomputes it per fit, `balanced_subsample` recomputes it per bootstrap sample, and XGBoost's `scale_pos_weight` is a single ratio. A difference between two libraries is therefore not evidence about how each applies weighting.
+
+`AutoScalePosWeight` in `src/models.py` sets XGBoost's `scale_pos_weight` inside every fit, from that split's training labels only. An earlier version used a single ratio computed over all labelled rows, which included each validation block's labels.
 
 ## How to run
 

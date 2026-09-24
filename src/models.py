@@ -9,6 +9,8 @@ rule while comparing model families and class weighting.
 LightGBM and XGBoost are optional. If they are not installed, their entries are
 absent from MODELS and the comparison script skips them with a note.
 """
+import numpy as np
+from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.ensemble import (ExtraTreesClassifier, HistGradientBoostingClassifier,
                               RandomForestClassifier)
 from sklearn.linear_model import LogisticRegression
@@ -16,6 +18,31 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 SEED = 42
+
+
+class AutoScalePosWeight(BaseEstimator, ClassifierMixin):
+    """Wraps an XGBoost model and sets scale_pos_weight inside each fit.
+
+    The ratio is negatives / positives among the labels passed to fit, so it uses
+    only that split's training rows. A ratio computed once over all labelled data
+    would include the validation block's labels.
+    """
+
+    def __init__(self, base=None):
+        self.base = base
+
+    def fit(self, X, y):
+        y = np.asarray(y)
+        n_pos = int((y == 1).sum())
+        if n_pos == 0:
+            raise ValueError("No positive labels in this training split")
+        self.ratio_ = float((y == 0).sum() / n_pos)
+        self.model_ = clone(self.base).set_params(scale_pos_weight=self.ratio_).fit(X, y)
+        self.classes_ = self.model_.classes_
+        return self
+
+    def predict_proba(self, X):
+        return self.model_.predict_proba(X)
 
 
 # --- linear ---------------------------------------------------------------
@@ -88,9 +115,9 @@ try:
                              eval_metric="auc", n_jobs=-1, random_state=SEED, **kw)
 
     MODELS["xgb"] = lambda: _xgb()
-    # scale_pos_weight is XGBoost's class weighting: (negatives / positives) in the training data.
-    # 27,591 / 3,644 = 7.57 over all labelled rows; fixed here so it does not depend on the split.
-    MODELS["xgb_weighted"] = lambda: _xgb(scale_pos_weight=7.57)
+    # scale_pos_weight (negatives / positives) is recomputed inside every fit from
+    # that split's training labels only; see AutoScalePosWeight above.
+    MODELS["xgb_weighted"] = lambda: AutoScalePosWeight(_xgb())
 except ImportError as e:  # pragma: no cover
     MISSING_LIBRARIES["xgboost"] = str(e)
 
