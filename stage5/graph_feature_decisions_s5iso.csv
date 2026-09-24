@@ -1,0 +1,6 @@
+feature_set,compared_with,d_fold_mean,d_mh_mean,splits_improved,kept
+raw_deg,raw_notime,0.00155,-0.00501,0,False
+raw_avl,raw_notime,0.00129,0.00519,3,True
+raw_nbm,raw_avl,-0.00193,-0.01544,0,False
+raw_nbs,raw_avl,-0.00174,-0.0056,1,False
+raw_cmp,raw_avl,-0.00166,0.00309,2,False

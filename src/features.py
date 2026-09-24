@@ -21,6 +21,7 @@ GRAPH_STAGES = {
     "raw_nbm": ["nbrmean"],
     "raw_nbs": ["nbrstats"],
     "raw_cmp": ["comp"],
+    "raw_avl_cmp": ["avail", "comp"],
 }
 NEEDS_GRAPH = set(GRAPH_STAGES)
 
