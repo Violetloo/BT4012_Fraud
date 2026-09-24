@@ -80,8 +80,10 @@ for s in FOLDS + [HORIZON]:
     tight = dict(tol=1e-10, random_state=SEED)
     lb, n_lbt, _ = counted(lambda: LogisticRegression(solver="lbfgs", max_iter=50000, **tight).fit(Xtr, y_tr))
     nc, n_alt, _ = counted(lambda: LogisticRegression(solver="newton-cholesky", max_iter=1000, **tight).fit(Xtr, y_tr))
-    auc_lb = roc_auc_score(y_va, lb.decision_function(Xva))
-    auc_nc = roc_auc_score(y_va, nc.decision_function(Xva))
+    dec_lb, n_dec_lb, _ = counted(lambda: lb.decision_function(Xva))
+    dec_nc, n_dec_nc, _ = counted(lambda: nc.decision_function(Xva))
+    auc_lb = roc_auc_score(y_va, dec_lb)
+    auc_nc = roc_auc_score(y_va, dec_nc)
     coef_rel = float(np.max(np.abs(lb.coef_[0] - nc.coef_[0]) / np.maximum(1.0, np.abs(nc.coef_[0]))))
 
     rows.append({"split": s.name, "lbfgs_iterations": int(lr.n_iter_[0]),
@@ -90,7 +92,7 @@ for s in FOLDS + [HORIZON]:
                  "B_delta_auc": auc_nc - auc_lb, "B_max_rel_coef_diff": coef_rel,
                  "info_auc_stage3_model": auc_lbfgs, "info_stage3_minus_optimum": auc_lbfgs - auc_nc,
                  "C_warn_scaler": n_scale + n_tx1 + n_tx2, "C_warn_stage3_fit": n_fit,
-                 "C_warn_predict": n_pred, "C_warn_lbfgs_tight_fit": n_lbt, "C_warn_newton_fit": n_alt,
+                 "C_warn_predict": n_pred, "C_warn_lbfgs_tight_fit": n_lbt + n_dec_lb, "C_warn_newton_fit": n_alt + n_dec_nc,
                  "C_fit_categories": ",".join(cats_fit)})
 
 res = pd.DataFrame(rows).set_index("split")
