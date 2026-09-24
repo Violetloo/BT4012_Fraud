@@ -54,6 +54,12 @@ FOLDS = [
 ]
 HORIZON = Split("horizon", (1, 21), (22, 35))
 
+# Several long-horizon splits, for checking that a change holds up over long ranges
+# rather than on the single horizon split. Each validates up to 14 steps ahead;
+# h21 is the same split as HORIZON. Stage 4 showed a gain on one horizon split need
+# not transfer to the test set, so Stage 5 requires agreement across these.
+MULTI_HORIZONS = [Split(f"h{k}", (1, k), (k + 1, min(k + 14, 35))) for k in (15, 18, 21, 24)]
+
 EXPERIMENT_DIR = REPO_ROOT / "experiments"
 LOG_PATH = EXPERIMENT_DIR / "experiment_log.csv"
 PRED_DIR = EXPERIMENT_DIR / "oof"

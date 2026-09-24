@@ -34,7 +34,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from src.data import DATA_DIR, load_data  # noqa: E402
-from src.features import get_feature_columns  # noqa: E402
+from src.features import NEEDS_GRAPH, get_feature_columns  # noqa: E402
+from src.graph_features import attach, build_or_load  # noqa: E402
 from src.models import get_model_factory  # noqa: E402
 from src.validation import (RUN_DIR, FEATURE_SET_DIR, _feature_hash, _git_state, _jsonable,  # noqa: E402
                             _params, code_hash, frame_hash, warning_summary)
@@ -53,8 +54,12 @@ p.add_argument("--allow-legacy-run", action="store_true",
                help="accept a run recorded before data hashes existed (parameters and features still checked)")
 args = p.parse_args()
 
-train, test, _ = load_data(args.data_dir)
+train, test, edges = load_data(args.data_dir)
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
+if args.features in NEEDS_GRAPH:
+    graph = build_or_load(train, test, edges)
+    train, test = attach(train, graph), attach(test, graph)
+    print(f"Attached {graph.shape[1]} graph feature columns")
 cols = get_feature_columns(args.features, train)
 model = get_model_factory(args.model)()
 
