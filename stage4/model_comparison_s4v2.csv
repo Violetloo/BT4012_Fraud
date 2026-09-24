@@ -1,0 +1,4 @@
+model,auc_mean,auc_std,auc_min,ap_mean,auc_horizon,ap_horizon,runtime_s,auc_weak_steps,runtime_warnings,run_id,blend_fold_horizon,d_fold_mean,d_horizon,d_weak_steps,accepted
+hgb,0.98289,0.02164,0.9456,0.95689,0.89877,0.81062,25.0,0.76531,0,20260924-063131-hgb_raw_notime_s4v2,0.94083,0.0,0.0,0.0,False
+xgb,0.98124,0.02443,0.93911,0.95486,0.88001,0.80129,4.9,0.73138,0,20260924-063136-xgb_raw_notime_s4v2,0.93062,-0.00165,-0.01876,-0.03393,False
+xgb_weighted,0.97911,0.02564,0.93518,0.95169,0.86299,0.79228,5.1,0.70663,0,20260924-063142-xgb_weighted_raw_notime_s4v2,0.92105,-0.00378,-0.03577,-0.05868,False
