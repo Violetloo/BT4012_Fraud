@@ -1,0 +1,8 @@
+config,n_features,auc_fold_mean,auc_fold_min,auc_horizon,auc_weak_steps,auc_h15,auc_h18,auc_h21,auc_h24,auc_mh_mean,auc_mh_min,run_id
+hgb_balanced_raw_cmp,162,0.98259,0.94509,0.91715,0.80154,0.92091,0.90961,0.91715,0.99699,0.93616,0.90961,20260925-071604-hgb_balanced_raw_cmp_s6exp
+hgb_balanced_rank_cmp,162,0.94419,0.89434,0.83567,0.69617,0.90091,0.8395,0.83567,0.91428,0.87259,0.83567,20260925-071646-hgb_balanced_rank_cmp_s6exp
+hgb_balanced_rankraw_cmp,321,0.98042,0.93928,0.87843,0.73309,0.91958,0.89883,0.87843,0.99536,0.92305,0.87843,20260925-071742-hgb_balanced_rankraw_cmp_s6exp
+hgb_balanced_raw_cmp_minstep7,162,0.98159,0.94152,0.88874,0.74494,0.91058,0.87909,0.88874,0.99693,0.91884,0.87909,20260925-071823-hgb_balanced_raw_cmp_minstep7_s6exp
+hgb_balanced_raw_cmp_minstep12,162,0.97555,0.9258,0.85582,0.69388,0.84737,0.85997,0.85582,0.99685,0.89,0.84737,20260925-071855-hgb_balanced_raw_cmp_minstep12_s6exp
+hgb_balanced_raw_cmp_halflife5,162,0.98585,0.9568,0.91174,0.78602,0.9342,0.90727,0.91174,0.99671,0.93748,0.90727,20260925-071933-hgb_balanced_raw_cmp_halflife5_s6exp
+hgb_balanced_raw_cmp_halflife10,162,0.98415,0.94978,0.91633,0.7989,0.92558,0.90744,0.91633,0.99674,0.93652,0.90744,20260925-072017-hgb_balanced_raw_cmp_halflife10_s6exp

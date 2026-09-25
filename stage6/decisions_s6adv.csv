@@ -1,0 +1,4 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_raw_cmp_drop5,0.00242,0.00013,3,True,20260925-070917-hgb_balanced_raw_cmp_drop5_s6adv
+hgb_balanced_raw_cmp_drop10,0.00185,-0.00504,2,False,20260925-070956-hgb_balanced_raw_cmp_drop10_s6adv
+hgb_balanced_raw_cmp_drop20,0.00045,-0.01675,1,False,20260925-071034-hgb_balanced_raw_cmp_drop20_s6adv

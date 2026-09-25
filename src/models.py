@@ -85,8 +85,16 @@ def extratrees():
                                 n_jobs=-1, random_state=SEED)
 
 
+def hgb_tuned():
+    """Stage 6 random search, selected on inner chronological holdouts only."""
+    return HistGradientBoostingClassifier(learning_rate=0.05, max_iter=500, max_leaf_nodes=15,
+                                          min_samples_leaf=10, l2_regularization=0.0,
+                                          max_features=0.5, early_stopping=False,
+                                          class_weight="balanced", random_state=SEED)
+
+
 MODELS = {"logreg": logreg, "logreg_balanced": logreg_balanced,
-          "hgb": hgb, "hgb_balanced": hgb_balanced,
+          "hgb": hgb, "hgb_balanced": hgb_balanced, "hgb_tuned": hgb_tuned,
           "rf": rf, "rf_balanced": rf_balanced, "extratrees": extratrees}
 
 # --- optional libraries ---------------------------------------------------

@@ -1,0 +1,2 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_tuned_raw_cmp,0.00327,0.00214,4,True,20260925-073734-hgb_tuned_raw_cmp_s6tune

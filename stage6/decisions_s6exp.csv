@@ -1,0 +1,7 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_rank_cmp,-0.03839,-0.06357,0,False,20260925-071646-hgb_balanced_rank_cmp_s6exp
+hgb_balanced_rankraw_cmp,-0.00216,-0.01311,0,False,20260925-071742-hgb_balanced_rankraw_cmp_s6exp
+hgb_balanced_raw_cmp_minstep7,-0.001,-0.01733,0,False,20260925-071823-hgb_balanced_raw_cmp_minstep7_s6exp
+hgb_balanced_raw_cmp_minstep12,-0.00704,-0.04616,0,False,20260925-071855-hgb_balanced_raw_cmp_minstep12_s6exp
+hgb_balanced_raw_cmp_halflife5,0.00326,0.00132,1,False,20260925-071933-hgb_balanced_raw_cmp_halflife5_s6exp
+hgb_balanced_raw_cmp_halflife10,0.00156,0.00036,1,False,20260925-072017-hgb_balanced_raw_cmp_halflife10_s6exp
