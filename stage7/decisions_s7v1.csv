@@ -1,0 +1,7 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_seed10_raw_cmp,0.0007,-0.0154,0,False,20260925-084548-hgb_balanced_seed10_raw_cmp_s7v1
+blend_hgb_lgbm_raw_cmp,0.00024,-0.00054,2,False,20260925-084908-blend_hgb_lgbm_raw_cmp_s7v1
+blend_hgb75_lgbm25_raw_cmp,0.00018,-8e-05,2,False,20260925-085009-blend_hgb75_lgbm25_raw_cmp_s7v1
+blend_hgb_xgb_raw_cmp,0.00016,-0.00376,1,False,20260925-085058-blend_hgb_xgb_raw_cmp_s7v1
+blend_hgb_lgbm_xgb_raw_cmp,0.00034,-0.00259,2,False,20260925-085147-blend_hgb_lgbm_xgb_raw_cmp_s7v1
+blend_seed10_lgbm_raw_cmp,0.00077,-0.01154,0,False,20260925-085505-blend_seed10_lgbm_raw_cmp_s7v1
