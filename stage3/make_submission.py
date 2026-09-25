@@ -33,9 +33,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from src.data import DATA_DIR, load_data  # noqa: E402
-from src.features import NEEDS_GRAPH, get_feature_columns  # noqa: E402
-from src.graph_features import attach, build_or_load  # noqa: E402
+from src.data import DATA_DIR  # noqa: E402
+from src.features import get_feature_columns  # noqa: E402
+from src.frames import load_prepared  # noqa: E402
 from src.models import get_model_factory  # noqa: E402
 from src.validation import (RUN_DIR, FEATURE_SET_DIR, _feature_hash, _git_state, _jsonable,  # noqa: E402
                             _params, code_hash, frame_hash, warning_summary)
@@ -52,14 +52,14 @@ p.add_argument("--run-id", required=True, help="run_id of the validation run thi
 p.add_argument("--data-dir", default=str(DATA_DIR))
 p.add_argument("--allow-legacy-run", action="store_true",
                help="accept a run recorded before data hashes existed (parameters and features still checked)")
+p.add_argument("--min-train-step", type=int, default=None,
+               help="drop training rows before this time step (must match the validated run)")
+p.add_argument("--recency-half-life", type=float, default=None,
+               help="recency weighting half-life in time steps (must match the validated run)")
 args = p.parse_args()
 
-train, test, edges = load_data(args.data_dir)
+train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
-if args.features in NEEDS_GRAPH:
-    graph = build_or_load(train, test, edges)
-    train, test = attach(train, graph), attach(test, graph)
-    print(f"Attached {graph.shape[1]} graph feature columns")
 cols = get_feature_columns(args.features, train)
 model = get_model_factory(args.model)()
 
@@ -86,6 +86,12 @@ if run_cols is None:
 if run_cols is not None and list(run_cols) != list(cols):
     problems.append("feature list differs from the validated run (content or order)")
 
+weight_name = None if args.recency_half_life is None else f"recency_halflife_{args.recency_half_life:g}"
+if run.get("min_train_step") != args.min_train_step:
+    problems.append(f"min_train_step differs: run {run.get('min_train_step')} vs {args.min_train_step}")
+if run.get("sample_weight_fn") != weight_name:
+    problems.append(f"sample weighting differs: run {run.get('sample_weight_fn')} vs {weight_name}")
+
 dhash = frame_hash(train, cols)
 if "data_hash" in run:
     if run["data_hash"] != dhash:
@@ -107,10 +113,16 @@ if missing:
 
 # 2. Fit on all labelled rows
 lab = train[train["label"].notna()]
+if args.min_train_step is not None:
+    lab = lab[lab["time_step"] >= args.min_train_step]
 y = lab["label"].astype(int)
+fit_kwargs = {}
+if args.recency_half_life is not None:
+    last = lab["time_step"].max()
+    fit_kwargs["sample_weight"] = 0.5 ** ((last - lab["time_step"].values) / args.recency_half_life)
 with warnings.catch_warnings(record=True) as caught:
     warnings.simplefilter("always")
-    model.fit(lab[cols], y)
+    model.fit(lab[cols], y, **fit_kwargs)
     proba = model.predict_proba(test[cols])
 classes = list(model.classes_)
 pred = np.asarray(proba)[:, classes.index(1)]
@@ -154,6 +166,7 @@ record = {
     "input_file_sha256": {n: file_sha256(data_dir / n) for n in ["train.csv", "test.csv", "sample_submission.csv"]},
     "model": " ".join(repr(model).split()), "params": params_now,
     "validated_run_id": args.run_id, "legacy_run": legacy,
+    "min_train_step": args.min_train_step, "recency_half_life": args.recency_half_life,
     "training_rows": {"labelled": int(len(lab)), "illicit": int(y.sum()),
                       "time_steps": [int(lab["time_step"].min()), int(lab["time_step"].max())]},
     "prediction_summary": {"mean": float(pred.mean()), "n_unique": int(np.unique(pred).size),

@@ -203,12 +203,15 @@ def _name_already_logged(name):
 # ---------------------------------------------------------------------------
 # Fitting and scoring
 # ---------------------------------------------------------------------------
-def _fit_predict(make_model, X_tr, y_tr, X_va, where):
+def _fit_predict(make_model, X_tr, y_tr, X_va, where, sample_weight=None):
     """Fit a fresh model and return class-1 probabilities plus captured warnings."""
     model = make_model()  # fresh, unfitted model: preprocessing inside it is fit on this fold only
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        model.fit(X_tr, y_tr)
+        if sample_weight is None:
+            model.fit(X_tr, y_tr)
+        else:
+            model.fit(X_tr, y_tr, sample_weight=sample_weight)
         proba = model.predict_proba(X_va)
     classes = list(getattr(model, "classes_", []))
     if 1 not in classes:
@@ -223,7 +226,8 @@ def _fit_predict(make_model, X_tr, y_tr, X_va, where):
 
 def evaluate(name, make_model, frame, feature_cols, description="", notes="",
              folds=FOLDS, horizon=HORIZON, log=True, save_predictions=True, verbose=True,
-             allow_duplicate_name=False, require_random_state=True):
+             allow_duplicate_name=False, require_random_state=True,
+             min_train_step=None, sample_weight_fn=None):
     """Train and score one configuration on every chronological split.
 
     Parameters
@@ -262,7 +266,8 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
     if log and standard_folds:
         _check_log_header()
         if standard_folds and not allow_duplicate_name and _name_already_logged(name):
-            raise ValueError(f"Experiment name '{name}' is already in {LOG_PATH.name}; choose a new name.")
+            raise ValueError(f"Experiment name '{name}' is already in {LOG_PATH.name}; choose a new name "
+                             "(scripts take --version, e.g. --version s6exp2)")
 
     start = time.time()
     data = frame[frame["label"].notna()]
@@ -272,6 +277,8 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
 
     for s in splits:
         tr, va = data[s.train_mask(steps)], data[s.val_mask(steps)]
+        if min_train_step is not None:
+            tr = tr[tr["time_step"] >= min_train_step]
         _require_both_classes(tr["label"], f"{s.name} train")
         _require_both_classes(va["label"], f"{s.name} validation")
         # Structural guards: validation strictly later than training, no shared transactions.
@@ -280,7 +287,11 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
         if not set(tr["txId"]).isdisjoint(va["txId"]):
             raise ValueError(f"{s.name}: a transaction appears in both training and validation")
 
-        p, caught = _fit_predict(make_model, tr[feature_cols], tr["label"].astype(int), va[feature_cols], s.name)
+        w = None if sample_weight_fn is None else np.asarray(sample_weight_fn(tr), dtype=float)
+        if w is not None and len(w) != len(tr):
+            raise ValueError(f"{s.name}: sample_weight_fn returned {len(w)} weights for {len(tr)} rows")
+        p, caught = _fit_predict(make_model, tr[feature_cols], tr["label"].astype(int),
+                                 va[feature_cols], s.name, sample_weight=w)
         all_warnings += [(s.name, w) for w in caught]
         auc, ap = roc_auc_score(va["label"], p), average_precision_score(va["label"], p)
         fold_rows.append({"split": s.name, "auc": auc, "ap": ap, "n_val": len(va),
@@ -329,6 +340,8 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
             "params": {k: _jsonable(v) for k, v in _params(probe).items()},
             "random_states": {k: _jsonable(v) for k, v in rs.items()},
             "splits": [asdict(s) for s in splits], "feature_hash": fhash, "n_features": len(feature_cols),
+            "min_train_step": min_train_step,
+            "sample_weight_fn": None if sample_weight_fn is None else getattr(sample_weight_fn, "__name__", repr(sample_weight_fn)),
             "feature_columns": list(feature_cols), "data_hash": frame_hash(frame, feature_cols),
             "metrics": res.reset_index().to_dict(orient="records"), "summary": summary,
             "per_step": per_step, "warnings": warn_counts,
