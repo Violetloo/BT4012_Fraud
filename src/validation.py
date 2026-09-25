@@ -227,7 +227,7 @@ def _fit_predict(make_model, X_tr, y_tr, X_va, where, sample_weight=None):
 def evaluate(name, make_model, frame, feature_cols, description="", notes="",
              folds=FOLDS, horizon=HORIZON, log=True, save_predictions=True, verbose=True,
              allow_duplicate_name=False, require_random_state=True,
-             min_train_step=None, sample_weight_fn=None):
+             min_train_step=None, train_window=None, sample_weight_fn=None):
     """Train and score one configuration on every chronological split.
 
     Parameters
@@ -279,6 +279,8 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
         tr, va = data[s.train_mask(steps)], data[s.val_mask(steps)]
         if min_train_step is not None:
             tr = tr[tr["time_step"] >= min_train_step]
+        if train_window is not None:
+            tr = tr[tr["time_step"] > tr["time_step"].max() - train_window]
         _require_both_classes(tr["label"], f"{s.name} train")
         _require_both_classes(va["label"], f"{s.name} validation")
         # Structural guards: validation strictly later than training, no shared transactions.
@@ -340,7 +342,7 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
             "params": {k: _jsonable(v) for k, v in _params(probe).items()},
             "random_states": {k: _jsonable(v) for k, v in rs.items()},
             "splits": [asdict(s) for s in splits], "feature_hash": fhash, "n_features": len(feature_cols),
-            "min_train_step": min_train_step,
+            "min_train_step": min_train_step, "train_window": train_window,
             "sample_weight_fn": None if sample_weight_fn is None else getattr(sample_weight_fn, "__name__", repr(sample_weight_fn)),
             "feature_columns": list(feature_cols), "data_hash": frame_hash(frame, feature_cols),
             "metrics": res.reset_index().to_dict(orient="records"), "summary": summary,

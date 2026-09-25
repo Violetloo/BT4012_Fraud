@@ -33,16 +33,28 @@ It writes `stage6/drift_drop_lists.json`, which defines `raw_cmp_drop5`, `raw_cm
 
 Ranks are computed within a step over all of that step's rows (train, unknown and test), using feature values only, so a row's rank never depends on another period. That is what removes level shifts between periods, and it is the transformation most likely to rescue signals like degree, which helped folds but hurt horizons in Stage 5.
 
-## c. Tuning with an inner chronological holdout
+## c. Tuning: use `nested_tune.py`, not `tune_hgb.py`
 
-`stage6/tune_hgb.py` runs a random search whose scores come only from **inner** splits carved out of training windows: for k = 15, 20, 25, 30 it trains on steps 1..k−5 and scores steps k−4..k. The outer folds and long-horizon blocks are never touched during the search, so the winning settings can be evaluated on them once, honestly. The number of iterations is a searched parameter rather than an early-stopping decision, so the submitted model matches the validated one exactly.
+`stage6/tune_hgb.py` is **superseded and its results are exploratory only**. It selected one parameter set on fixed inner blocks (steps 11–15, 16–20, 21–25, 26–30). Three of those are outer fold validation blocks, so the outer scores it reported reused labels that had influenced the selection, and evaluating the winner "once" does not undo that. Its +0.0021 multi-horizon gain and 4-of-4 pass are not clean validation evidence.
+
+`stage6/nested_tune.py` replaces it. The search runs **inside `fit()`**: for each outer split the model carves the last two 5-step blocks out of that split's own training rows, scores every candidate on them, refits the winner on the whole training portion and predicts the outer block. The outer score then estimates the tuning **procedure**, which is what a submission uses. The baseline settings are always a candidate, so the procedure can never select something that scored worse than leaving settings alone, and each split's choice plus its per-inner-block scores are saved.
+
+A final search over all labelled history gives the settings to submit. Its own inner AUC is not an estimate of quality; the nested comparison is.
+
+## d. Rolling windows and matched-population ranks
+
+`stage6/window_rank_experiments.py` corrects two earlier experiments:
+
+- `window10`, `window15`, `window20` keep only the last N time steps of each split's training rows. The earlier `minstep7`/`minstep12` used **fixed cutoffs**, so their windows still grew from split to split; they showed that dropping those early periods hurt, not that recent-window training fails.
+- `rankm_cmp` and `rankmraw_cmp` rank every row against the **same reference population** in train and test (labelled training rows and test rows). The earlier `rank_cmp` ranked training rows against all ~4,000 rows of their step, mostly unlabelled, while test rows were ranked against ~1,095 rows of the labelled kind — different populations, which can create a shift rather than remove one. The earlier result shows that implementation failed, not that ranking cannot help.
 
 ## How to run
 
 ```bash
-python3 stage6/adversarial_validation.py     # ~15 min; writes the drop lists, then evaluates them
-python3 stage6/run_experiments.py            # ~35 min; 7 configurations
-python3 stage6/tune_hgb.py --n-trials 20     # ~30-60 min; search, then one honest evaluation
+python3 stage6/adversarial_validation.py         # ~15 min; writes the drop lists, then evaluates them
+python3 stage6/run_experiments.py                # ~35 min; 7 configurations
+python3 stage6/nested_tune.py --n-random 9       # ~40-70 min; nested search, then a final search
+python3 stage6/window_rank_experiments.py        # ~35 min; rolling windows and matched ranks
 ```
 
 Each script has its own default `--version`; pass a new one (for example `--version s6exp2`) to rerun, since experiment names must be unique.
@@ -68,4 +80,5 @@ For tuned settings, add the parameters to `src/models.py` as a named factory, re
 
 - Nothing here changes the acceptance rule or the splits, so Stage 6 results are directly comparable with Stages 3–5.
 - If several configurations pass, prefer the simplest, and consider combining only the ones that are conceptually independent — Stage 5 showed that combining two individually good feature groups can be worse than either.
+- `raw_cmp_drop5` passes the rule by +0.00013 on the multi-horizon mean while h18 falls by 0.0212. Record it as a **trade-off**, not a dependable improvement, and keep `raw_cmp` as the default.
 - Keep submissions for configurations that pass the rule; you have 3 per day and the private leaderboard is what counts.

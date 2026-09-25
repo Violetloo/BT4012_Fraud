@@ -54,6 +54,8 @@ p.add_argument("--allow-legacy-run", action="store_true",
                help="accept a run recorded before data hashes existed (parameters and features still checked)")
 p.add_argument("--min-train-step", type=int, default=None,
                help="drop training rows before this time step (must match the validated run)")
+p.add_argument("--train-window", type=int, default=None,
+               help="keep only the last N time steps of training data (must match the validated run)")
 p.add_argument("--recency-half-life", type=float, default=None,
                help="recency weighting half-life in time steps (must match the validated run)")
 args = p.parse_args()
@@ -87,6 +89,8 @@ if run_cols is not None and list(run_cols) != list(cols):
     problems.append("feature list differs from the validated run (content or order)")
 
 weight_name = None if args.recency_half_life is None else f"recency_halflife_{args.recency_half_life:g}"
+if run.get("train_window") != args.train_window:
+    problems.append(f"train_window differs: run {run.get('train_window')} vs {args.train_window}")
 if run.get("min_train_step") != args.min_train_step:
     problems.append(f"min_train_step differs: run {run.get('min_train_step')} vs {args.min_train_step}")
 if run.get("sample_weight_fn") != weight_name:
@@ -115,6 +119,8 @@ if missing:
 lab = train[train["label"].notna()]
 if args.min_train_step is not None:
     lab = lab[lab["time_step"] >= args.min_train_step]
+if args.train_window is not None:
+    lab = lab[lab["time_step"] > lab["time_step"].max() - args.train_window]
 y = lab["label"].astype(int)
 fit_kwargs = {}
 if args.recency_half_life is not None:
@@ -166,7 +172,8 @@ record = {
     "input_file_sha256": {n: file_sha256(data_dir / n) for n in ["train.csv", "test.csv", "sample_submission.csv"]},
     "model": " ".join(repr(model).split()), "params": params_now,
     "validated_run_id": args.run_id, "legacy_run": legacy,
-    "min_train_step": args.min_train_step, "recency_half_life": args.recency_half_life,
+    "min_train_step": args.min_train_step, "train_window": args.train_window,
+    "recency_half_life": args.recency_half_life,
     "training_rows": {"labelled": int(len(lab)), "illicit": int(y.sum()),
                       "time_steps": [int(lab["time_step"].min()), int(lab["time_step"].max())]},
     "prediction_summary": {"mean": float(pred.mean()), "n_unique": int(np.unique(pred).size),

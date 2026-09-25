@@ -8,7 +8,7 @@ from pathlib import Path
 
 from src.data import REPO_ROOT, raw_feature_columns
 from src.graph_features import group_columns
-from src.transforms import rank_columns
+from src.transforms import matched_rank_columns, rank_columns
 
 # Features to drop, written by stage6/adversarial_validation.py. Absent until then.
 DROP_LIST_PATH = REPO_ROOT / "stage6" / "drift_drop_lists.json"
@@ -48,6 +48,10 @@ FEATURE_SETS = {
 # Stage 6 sets. "rank" columns are per-time-step percentile ranks (src/transforms.py);
 # "drop" sets remove the most drift-prone raw features found by adversarial validation.
 NEEDS_RANKS = {"rank_cmp", "rankraw_cmp"}
+NEEDS_MATCHED_RANKS = {"rankm_cmp", "rankmraw_cmp"}
+FEATURE_SETS["rankm_cmp"] = lambda df: matched_rank_columns(df) + group_columns(df, ["comp"])
+FEATURE_SETS["rankmraw_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + matched_rank_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["rank_cmp"] = lambda df: rank_columns(df) + group_columns(df, ["comp"])
 FEATURE_SETS["rankraw_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                                + rank_columns(df) + group_columns(df, ["comp"]))
@@ -55,7 +59,8 @@ for _n in (5, 10, 20):
     FEATURE_SETS[f"raw_cmp_drop{_n}"] = (lambda n: lambda df: (
         [c for c in raw_feature_columns(df, exclude_time_candidates=True) if c not in set(_drop_list(n))]
         + group_columns(df, ["comp"])))(_n)
-NEEDS_GRAPH |= {"rank_cmp", "rankraw_cmp", "raw_cmp_drop5", "raw_cmp_drop10", "raw_cmp_drop20"}
+NEEDS_GRAPH |= {"rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",
+                "raw_cmp_drop5", "raw_cmp_drop10", "raw_cmp_drop20"}
 
 for _name, _groups in GRAPH_STAGES.items():
     FEATURE_SETS[_name] = (lambda groups: lambda df: raw_feature_columns(df, exclude_time_candidates=True)
