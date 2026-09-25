@@ -1,0 +1,11 @@
+params,mean_inner_auc,inner_scores
+"{""learning_rate"": 0.12, ""max_iter"": 800, ""max_leaf_nodes"": 15, ""min_samples_leaf"": 50, ""l2_regularization"": 0.0, ""max_features"": 1.0}",0.99749,"[0.9982608695652174, 0.996723579053261]"
+"{""learning_rate"": 0.12, ""max_iter"": 300, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 20, ""l2_regularization"": 0.0, ""max_features"": 1.0}",0.99742,"[0.9983158146201624, 0.9965334053664685]"
+"{""learning_rate"": 0.02, ""max_iter"": 800, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 20, ""l2_regularization"": 0.1, ""max_features"": 1.0}",0.99724,"[0.9982891383978341, 0.9961903165111123]"
+"{""learning_rate"": 0.08, ""max_iter"": 800, ""max_leaf_nodes"": 63, ""min_samples_leaf"": 100, ""l2_regularization"": 1.0, ""max_features"": 0.5}",0.99721,"[0.9977802994107342, 0.9966350900724678]"
+"{""learning_rate"": 0.08, ""max_iter"": 300, ""max_leaf_nodes"": 15, ""min_samples_leaf"": 100, ""l2_regularization"": 0.1, ""max_features"": 1.0}",0.99719,"[0.9982421563943303, 0.996145295801586]"
+"{""learning_rate"": 0.08, ""max_iter"": 500, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 100, ""l2_regularization"": 1.0, ""max_features"": 0.8}",0.99715,"[0.9979833572224877, 0.9963098542570962]"
+"{""learning_rate"": 0.08, ""max_iter"": 800, ""max_leaf_nodes"": 63, ""min_samples_leaf"": 10, ""l2_regularization"": 0.1, ""max_features"": 0.8}",0.99702,"[0.9978491798057015, 0.9961965262641505]"
+"{""learning_rate"": 0.05, ""max_iter"": 300, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 20, ""l2_regularization"": 0.0, ""max_features"": 1.0}",0.99701,"[0.9981358496575888, 0.995877500201817]"
+"{""learning_rate"": 0.02, ""max_iter"": 500, ""max_leaf_nodes"": 15, ""min_samples_leaf"": 10, ""l2_regularization"": 1.0, ""max_features"": 1.0}",0.99659,"[0.9978531613314223, 0.9953302657153325]"
+"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 15, ""min_samples_leaf"": 50, ""l2_regularization"": 10.0, ""max_features"": 0.5}",0.99651,"[0.9976652333174072, 0.9953473425361872]"

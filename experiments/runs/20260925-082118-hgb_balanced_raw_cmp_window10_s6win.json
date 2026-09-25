@@ -1,0 +1,529 @@
+{
+  "run_id": "20260925-082118-hgb_balanced_raw_cmp_window10_s6win",
+  "timestamp_utc": "2026-09-25T08:21:18+00:00",
+  "name": "hgb_balanced_raw_cmp_window10_s6win",
+  "description": "Stage 6d: hgb_balanced_raw_cmp_window10",
+  "notes": "",
+  "model": "HistGradientBoostingClassifier(class_weight='balanced', early_stopping=False,\n                               learning_rate=0.05, max_iter=300,\n                               random_state=42)",
+  "params": {
+    "categorical_features": "from_dtype",
+    "class_weight": "balanced",
+    "early_stopping": false,
+    "interaction_cst": null,
+    "l2_regularization": 0.0,
+    "learning_rate": 0.05,
+    "loss": "log_loss",
+    "max_bins": 255,
+    "max_depth": null,
+    "max_features": 1.0,
+    "max_iter": 300,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 20,
+    "monotonic_cst": null,
+    "n_iter_no_change": 10,
+    "random_state": 42,
+    "scoring": "loss",
+    "tol": 1e-07,
+    "validation_fraction": 0.1,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "random_states": {
+    "random_state": 42
+  },
+  "splits": [
+    {
+      "name": "fold1",
+      "train_steps": [
+        1,
+        15
+      ],
+      "val_steps": [
+        16,
+        20
+      ]
+    },
+    {
+      "name": "fold2",
+      "train_steps": [
+        1,
+        20
+      ],
+      "val_steps": [
+        21,
+        25
+      ]
+    },
+    {
+      "name": "fold3",
+      "train_steps": [
+        1,
+        25
+      ],
+      "val_steps": [
+        26,
+        30
+      ]
+    },
+    {
+      "name": "fold4",
+      "train_steps": [
+        1,
+        30
+      ],
+      "val_steps": [
+        31,
+        35
+      ]
+    },
+    {
+      "name": "horizon",
+      "train_steps": [
+        1,
+        21
+      ],
+      "val_steps": [
+        22,
+        35
+      ]
+    }
+  ],
+  "feature_hash": "ec1f341a",
+  "n_features": 162,
+  "min_train_step": null,
+  "train_window": 10,
+  "sample_weight_fn": null,
+  "feature_columns": [
+    "feat_1",
+    "feat_2",
+    "feat_3",
+    "feat_4",
+    "feat_5",
+    "feat_6",
+    "feat_7",
+    "feat_8",
+    "feat_9",
+    "feat_10",
+    "feat_11",
+    "feat_12",
+    "feat_13",
+    "feat_14",
+    "feat_15",
+    "feat_16",
+    "feat_17",
+    "feat_18",
+    "feat_19",
+    "feat_20",
+    "feat_21",
+    "feat_22",
+    "feat_23",
+    "feat_24",
+    "feat_25",
+    "feat_26",
+    "feat_27",
+    "feat_28",
+    "feat_29",
+    "feat_30",
+    "feat_31",
+    "feat_32",
+    "feat_33",
+    "feat_34",
+    "feat_35",
+    "feat_36",
+    "feat_37",
+    "feat_38",
+    "feat_39",
+    "feat_40",
+    "feat_41",
+    "feat_42",
+    "feat_43",
+    "feat_44",
+    "feat_45",
+    "feat_46",
+    "feat_47",
+    "feat_48",
+    "feat_49",
+    "feat_50",
+    "feat_51",
+    "feat_52",
+    "feat_53",
+    "feat_54",
+    "feat_55",
+    "feat_56",
+    "feat_57",
+    "feat_58",
+    "feat_59",
+    "feat_60",
+    "feat_61",
+    "feat_62",
+    "feat_63",
+    "feat_64",
+    "feat_65",
+    "feat_66",
+    "feat_67",
+    "feat_68",
+    "feat_69",
+    "feat_70",
+    "feat_71",
+    "feat_72",
+    "feat_73",
+    "feat_74",
+    "feat_75",
+    "feat_76",
+    "feat_77",
+    "feat_78",
+    "feat_79",
+    "feat_80",
+    "feat_81",
+    "feat_82",
+    "feat_83",
+    "feat_84",
+    "feat_85",
+    "feat_86",
+    "feat_87",
+    "feat_88",
+    "feat_89",
+    "feat_90",
+    "feat_91",
+    "feat_92",
+    "feat_93",
+    "feat_94",
+    "feat_95",
+    "feat_96",
+    "feat_97",
+    "feat_98",
+    "feat_99",
+    "feat_102",
+    "feat_104",
+    "feat_105",
+    "feat_106",
+    "feat_107",
+    "feat_108",
+    "feat_109",
+    "feat_110",
+    "feat_111",
+    "feat_112",
+    "feat_113",
+    "feat_114",
+    "feat_115",
+    "feat_116",
+    "feat_117",
+    "feat_118",
+    "feat_119",
+    "feat_120",
+    "feat_121",
+    "feat_122",
+    "feat_123",
+    "feat_124",
+    "feat_125",
+    "feat_126",
+    "feat_127",
+    "feat_128",
+    "feat_129",
+    "feat_130",
+    "feat_131",
+    "feat_132",
+    "feat_133",
+    "feat_134",
+    "feat_135",
+    "feat_138",
+    "feat_140",
+    "feat_141",
+    "feat_142",
+    "feat_143",
+    "feat_144",
+    "feat_145",
+    "feat_146",
+    "feat_147",
+    "feat_148",
+    "feat_149",
+    "feat_150",
+    "feat_151",
+    "feat_152",
+    "feat_153",
+    "feat_154",
+    "feat_155",
+    "feat_156",
+    "feat_157",
+    "feat_158",
+    "feat_159",
+    "feat_160",
+    "feat_161",
+    "feat_162",
+    "feat_163",
+    "feat_164",
+    "feat_165",
+    "cmp_size",
+    "cmp_usable_share",
+    "cmp_degree_over_size"
+  ],
+  "data_hash": "1268a14ebf0fbd0f",
+  "metrics": [
+    {
+      "split": "fold1",
+      "auc": 0.9913497588460248,
+      "ap": 0.9793855095218795,
+      "n_val": 3375,
+      "n_illicit_val": 619
+    },
+    {
+      "split": "fold2",
+      "auc": 0.9309289674457397,
+      "ap": 0.8543745045581986,
+      "n_val": 5311,
+      "n_illicit_val": 566
+    },
+    {
+      "split": "fold3",
+      "auc": 0.9958565422853134,
+      "ap": 0.989400317149459,
+      "n_val": 2705,
+      "n_illicit_val": 617
+    },
+    {
+      "split": "fold4",
+      "auc": 0.9980741360089186,
+      "ap": 0.9922861696201203,
+      "n_val": 4330,
+      "n_illicit_val": 690
+    },
+    {
+      "split": "horizon",
+      "auc": 0.8558230939366827,
+      "ap": 0.7868323668194601,
+      "n_val": 11705,
+      "n_illicit_val": 1773
+    }
+  ],
+  "summary": {
+    "auc_mean": 0.9790523511464991,
+    "auc_std": 0.02788949369440419,
+    "auc_min": 0.9309289674457397,
+    "ap_mean": 0.9538616252124144,
+    "auc_horizon": 0.8558230939366827,
+    "ap_horizon": 0.7868323668194601,
+    "runtime_s": 10.5
+  },
+  "per_step": [
+    {
+      "split": "fold1",
+      "time_step": 16,
+      "n_illicit": 128,
+      "auc": 0.9934895833333334
+    },
+    {
+      "split": "fold1",
+      "time_step": 17,
+      "n_illicit": 99,
+      "auc": 0.9914453524004087
+    },
+    {
+      "split": "fold1",
+      "time_step": 18,
+      "n_illicit": 52,
+      "auc": 0.9994293540287607
+    },
+    {
+      "split": "fold1",
+      "time_step": 19,
+      "n_illicit": 80,
+      "auc": 0.9900751879699248
+    },
+    {
+      "split": "fold1",
+      "time_step": 20,
+      "n_illicit": 260,
+      "auc": 0.9861298076923077
+    },
+    {
+      "split": "fold2",
+      "time_step": 21,
+      "n_illicit": 100,
+      "auc": 0.9947504621072089
+    },
+    {
+      "split": "fold2",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9986750266177689
+    },
+    {
+      "split": "fold2",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.927623040830588
+    },
+    {
+      "split": "fold2",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.6811495796830833
+    },
+    {
+      "split": "fold2",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.999198832075203
+    },
+    {
+      "split": "fold3",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.9884946555819477
+    },
+    {
+      "split": "fold3",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9988553113553114
+    },
+    {
+      "split": "fold3",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 1.0
+    },
+    {
+      "split": "fold3",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.9967482599233827
+    },
+    {
+      "split": "fold3",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9932519192415922
+    },
+    {
+      "split": "fold4",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.9975790328626765
+    },
+    {
+      "split": "fold4",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.9992488867428511
+    },
+    {
+      "split": "fold4",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9894944872061577
+    },
+    {
+      "split": "fold4",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.9989257039466244
+    },
+    {
+      "split": "fold4",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9979425233955
+    },
+    {
+      "split": "horizon",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9991837217555897
+    },
+    {
+      "split": "horizon",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.9351935043758943
+    },
+    {
+      "split": "horizon",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.6508380506742045
+    },
+    {
+      "split": "horizon",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9994836917817974
+    },
+    {
+      "split": "horizon",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.9156522169437846
+    },
+    {
+      "split": "horizon",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9995421245421245
+    },
+    {
+      "split": "horizon",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 1.0
+    },
+    {
+      "split": "horizon",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.6432150500890272
+    },
+    {
+      "split": "horizon",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9843182252820806
+    },
+    {
+      "split": "horizon",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.7145601649381482
+    },
+    {
+      "split": "horizon",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.7727286275491652
+    },
+    {
+      "split": "horizon",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9923028916163927
+    },
+    {
+      "split": "horizon",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.9973425308153342
+    },
+    {
+      "split": "horizon",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9965155638149599
+    }
+  ],
+  "warnings": {
+    "n_convergence_warnings": 0,
+    "n_runtime_warnings": 0,
+    "n_other_warnings": 0
+  },
+  "warning_messages": [],
+  "environment": {
+    "python": "3.13.7",
+    "numpy": "2.2.6",
+    "pandas": "2.3.2",
+    "sklearn": "1.7.2",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O"
+  },
+  "git_commit": "dd88de6",
+  "git_dirty": "False",
+  "code_hash": "be3ce9f5c7a5"
+}

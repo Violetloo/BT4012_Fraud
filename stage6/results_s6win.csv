@@ -1,0 +1,7 @@
+config,n_features,auc_fold_mean,auc_fold_min,auc_horizon,auc_weak_steps,auc_h15,auc_h18,auc_h21,auc_h24,auc_mh_mean,auc_mh_min,run_id
+hgb_balanced_raw_cmp,162,0.98259,0.94509,0.91715,0.80154,0.92091,0.90961,0.91715,0.99699,0.93616,0.90961,20260925-082054-hgb_balanced_raw_cmp_s6win
+hgb_balanced_raw_cmp_window10,162,0.97905,0.93093,0.85582,0.69388,0.85975,0.84569,0.85582,0.99698,0.88956,0.84569,20260925-082118-hgb_balanced_raw_cmp_window10_s6win
+hgb_balanced_raw_cmp_window15,162,0.98306,0.9464,0.88874,0.74494,0.92091,0.89956,0.88874,0.99699,0.92655,0.88874,20260925-082141-hgb_balanced_raw_cmp_window15_s6win
+hgb_balanced_raw_cmp_window20,162,0.9826,0.94509,0.92791,0.82334,0.92091,0.90961,0.92791,0.99693,0.93884,0.90961,20260925-082206-hgb_balanced_raw_cmp_window20_s6win
+hgb_balanced_rankm_cmp,162,0.90712,0.85495,0.86629,0.74515,0.88772,0.87364,0.86629,0.88758,0.87881,0.86629,20260925-082239-hgb_balanced_rankm_cmp_s6win
+hgb_balanced_rankmraw_cmp,321,0.98198,0.94784,0.90336,0.77065,0.92027,0.91212,0.90336,0.99558,0.93283,0.90336,20260925-082313-hgb_balanced_rankmraw_cmp_s6win

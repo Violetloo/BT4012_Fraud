@@ -1,0 +1,885 @@
+{
+  "run_id": "20260925-071807-hgb_balanced_rankraw_cmp_s6exp_mh",
+  "timestamp_utc": "2026-09-25T07:18:07+00:00",
+  "name": "hgb_balanced_rankraw_cmp_s6exp_mh",
+  "description": "long-horizon check: Stage 6: hgb_balanced_rankraw_cmp",
+  "notes": "",
+  "model": "HistGradientBoostingClassifier(class_weight='balanced', early_stopping=False,\n                               learning_rate=0.05, max_iter=300,\n                               random_state=42)",
+  "params": {
+    "categorical_features": "from_dtype",
+    "class_weight": "balanced",
+    "early_stopping": false,
+    "interaction_cst": null,
+    "l2_regularization": 0.0,
+    "learning_rate": 0.05,
+    "loss": "log_loss",
+    "max_bins": 255,
+    "max_depth": null,
+    "max_features": 1.0,
+    "max_iter": 300,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 20,
+    "monotonic_cst": null,
+    "n_iter_no_change": 10,
+    "random_state": 42,
+    "scoring": "loss",
+    "tol": 1e-07,
+    "validation_fraction": 0.1,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "random_states": {
+    "random_state": 42
+  },
+  "splits": [
+    {
+      "name": "h15",
+      "train_steps": [
+        1,
+        15
+      ],
+      "val_steps": [
+        16,
+        29
+      ]
+    },
+    {
+      "name": "h18",
+      "train_steps": [
+        1,
+        18
+      ],
+      "val_steps": [
+        19,
+        32
+      ]
+    },
+    {
+      "name": "h21",
+      "train_steps": [
+        1,
+        21
+      ],
+      "val_steps": [
+        22,
+        35
+      ]
+    },
+    {
+      "name": "h24",
+      "train_steps": [
+        1,
+        24
+      ],
+      "val_steps": [
+        25,
+        35
+      ]
+    },
+    {
+      "name": "horizon",
+      "train_steps": [
+        1,
+        21
+      ],
+      "val_steps": [
+        22,
+        35
+      ]
+    }
+  ],
+  "feature_hash": "2999ef9e",
+  "n_features": 321,
+  "min_train_step": null,
+  "sample_weight_fn": null,
+  "feature_columns": [
+    "feat_1",
+    "feat_2",
+    "feat_3",
+    "feat_4",
+    "feat_5",
+    "feat_6",
+    "feat_7",
+    "feat_8",
+    "feat_9",
+    "feat_10",
+    "feat_11",
+    "feat_12",
+    "feat_13",
+    "feat_14",
+    "feat_15",
+    "feat_16",
+    "feat_17",
+    "feat_18",
+    "feat_19",
+    "feat_20",
+    "feat_21",
+    "feat_22",
+    "feat_23",
+    "feat_24",
+    "feat_25",
+    "feat_26",
+    "feat_27",
+    "feat_28",
+    "feat_29",
+    "feat_30",
+    "feat_31",
+    "feat_32",
+    "feat_33",
+    "feat_34",
+    "feat_35",
+    "feat_36",
+    "feat_37",
+    "feat_38",
+    "feat_39",
+    "feat_40",
+    "feat_41",
+    "feat_42",
+    "feat_43",
+    "feat_44",
+    "feat_45",
+    "feat_46",
+    "feat_47",
+    "feat_48",
+    "feat_49",
+    "feat_50",
+    "feat_51",
+    "feat_52",
+    "feat_53",
+    "feat_54",
+    "feat_55",
+    "feat_56",
+    "feat_57",
+    "feat_58",
+    "feat_59",
+    "feat_60",
+    "feat_61",
+    "feat_62",
+    "feat_63",
+    "feat_64",
+    "feat_65",
+    "feat_66",
+    "feat_67",
+    "feat_68",
+    "feat_69",
+    "feat_70",
+    "feat_71",
+    "feat_72",
+    "feat_73",
+    "feat_74",
+    "feat_75",
+    "feat_76",
+    "feat_77",
+    "feat_78",
+    "feat_79",
+    "feat_80",
+    "feat_81",
+    "feat_82",
+    "feat_83",
+    "feat_84",
+    "feat_85",
+    "feat_86",
+    "feat_87",
+    "feat_88",
+    "feat_89",
+    "feat_90",
+    "feat_91",
+    "feat_92",
+    "feat_93",
+    "feat_94",
+    "feat_95",
+    "feat_96",
+    "feat_97",
+    "feat_98",
+    "feat_99",
+    "feat_102",
+    "feat_104",
+    "feat_105",
+    "feat_106",
+    "feat_107",
+    "feat_108",
+    "feat_109",
+    "feat_110",
+    "feat_111",
+    "feat_112",
+    "feat_113",
+    "feat_114",
+    "feat_115",
+    "feat_116",
+    "feat_117",
+    "feat_118",
+    "feat_119",
+    "feat_120",
+    "feat_121",
+    "feat_122",
+    "feat_123",
+    "feat_124",
+    "feat_125",
+    "feat_126",
+    "feat_127",
+    "feat_128",
+    "feat_129",
+    "feat_130",
+    "feat_131",
+    "feat_132",
+    "feat_133",
+    "feat_134",
+    "feat_135",
+    "feat_138",
+    "feat_140",
+    "feat_141",
+    "feat_142",
+    "feat_143",
+    "feat_144",
+    "feat_145",
+    "feat_146",
+    "feat_147",
+    "feat_148",
+    "feat_149",
+    "feat_150",
+    "feat_151",
+    "feat_152",
+    "feat_153",
+    "feat_154",
+    "feat_155",
+    "feat_156",
+    "feat_157",
+    "feat_158",
+    "feat_159",
+    "feat_160",
+    "feat_161",
+    "feat_162",
+    "feat_163",
+    "feat_164",
+    "feat_165",
+    "rnk_feat_1",
+    "rnk_feat_2",
+    "rnk_feat_3",
+    "rnk_feat_4",
+    "rnk_feat_5",
+    "rnk_feat_6",
+    "rnk_feat_7",
+    "rnk_feat_8",
+    "rnk_feat_9",
+    "rnk_feat_10",
+    "rnk_feat_11",
+    "rnk_feat_12",
+    "rnk_feat_13",
+    "rnk_feat_14",
+    "rnk_feat_15",
+    "rnk_feat_16",
+    "rnk_feat_17",
+    "rnk_feat_18",
+    "rnk_feat_19",
+    "rnk_feat_20",
+    "rnk_feat_21",
+    "rnk_feat_22",
+    "rnk_feat_23",
+    "rnk_feat_24",
+    "rnk_feat_25",
+    "rnk_feat_26",
+    "rnk_feat_27",
+    "rnk_feat_28",
+    "rnk_feat_29",
+    "rnk_feat_30",
+    "rnk_feat_31",
+    "rnk_feat_32",
+    "rnk_feat_33",
+    "rnk_feat_34",
+    "rnk_feat_35",
+    "rnk_feat_36",
+    "rnk_feat_37",
+    "rnk_feat_38",
+    "rnk_feat_39",
+    "rnk_feat_40",
+    "rnk_feat_41",
+    "rnk_feat_42",
+    "rnk_feat_43",
+    "rnk_feat_44",
+    "rnk_feat_45",
+    "rnk_feat_46",
+    "rnk_feat_47",
+    "rnk_feat_48",
+    "rnk_feat_49",
+    "rnk_feat_50",
+    "rnk_feat_51",
+    "rnk_feat_52",
+    "rnk_feat_53",
+    "rnk_feat_54",
+    "rnk_feat_55",
+    "rnk_feat_56",
+    "rnk_feat_57",
+    "rnk_feat_58",
+    "rnk_feat_59",
+    "rnk_feat_60",
+    "rnk_feat_61",
+    "rnk_feat_62",
+    "rnk_feat_63",
+    "rnk_feat_64",
+    "rnk_feat_65",
+    "rnk_feat_66",
+    "rnk_feat_67",
+    "rnk_feat_68",
+    "rnk_feat_69",
+    "rnk_feat_70",
+    "rnk_feat_71",
+    "rnk_feat_72",
+    "rnk_feat_73",
+    "rnk_feat_74",
+    "rnk_feat_75",
+    "rnk_feat_76",
+    "rnk_feat_77",
+    "rnk_feat_78",
+    "rnk_feat_79",
+    "rnk_feat_80",
+    "rnk_feat_81",
+    "rnk_feat_82",
+    "rnk_feat_83",
+    "rnk_feat_84",
+    "rnk_feat_85",
+    "rnk_feat_86",
+    "rnk_feat_87",
+    "rnk_feat_88",
+    "rnk_feat_89",
+    "rnk_feat_90",
+    "rnk_feat_91",
+    "rnk_feat_92",
+    "rnk_feat_93",
+    "rnk_feat_94",
+    "rnk_feat_95",
+    "rnk_feat_96",
+    "rnk_feat_97",
+    "rnk_feat_98",
+    "rnk_feat_99",
+    "rnk_feat_102",
+    "rnk_feat_104",
+    "rnk_feat_105",
+    "rnk_feat_106",
+    "rnk_feat_107",
+    "rnk_feat_108",
+    "rnk_feat_109",
+    "rnk_feat_110",
+    "rnk_feat_111",
+    "rnk_feat_112",
+    "rnk_feat_113",
+    "rnk_feat_114",
+    "rnk_feat_115",
+    "rnk_feat_116",
+    "rnk_feat_117",
+    "rnk_feat_118",
+    "rnk_feat_119",
+    "rnk_feat_120",
+    "rnk_feat_121",
+    "rnk_feat_122",
+    "rnk_feat_123",
+    "rnk_feat_124",
+    "rnk_feat_125",
+    "rnk_feat_126",
+    "rnk_feat_127",
+    "rnk_feat_128",
+    "rnk_feat_129",
+    "rnk_feat_130",
+    "rnk_feat_131",
+    "rnk_feat_132",
+    "rnk_feat_133",
+    "rnk_feat_134",
+    "rnk_feat_135",
+    "rnk_feat_138",
+    "rnk_feat_140",
+    "rnk_feat_141",
+    "rnk_feat_142",
+    "rnk_feat_143",
+    "rnk_feat_144",
+    "rnk_feat_145",
+    "rnk_feat_146",
+    "rnk_feat_147",
+    "rnk_feat_148",
+    "rnk_feat_149",
+    "rnk_feat_150",
+    "rnk_feat_151",
+    "rnk_feat_152",
+    "rnk_feat_153",
+    "rnk_feat_154",
+    "rnk_feat_155",
+    "rnk_feat_156",
+    "rnk_feat_157",
+    "rnk_feat_158",
+    "rnk_feat_159",
+    "rnk_feat_160",
+    "rnk_feat_161",
+    "rnk_feat_162",
+    "rnk_feat_163",
+    "rnk_feat_164",
+    "rnk_feat_165",
+    "cmp_size",
+    "cmp_usable_share",
+    "cmp_degree_over_size"
+  ],
+  "data_hash": "f4f12a2e498f0fb3",
+  "metrics": [
+    {
+      "split": "h15",
+      "auc": 0.9195775601936534,
+      "ap": 0.832674633205575,
+      "n_val": 10867,
+      "n_illicit_val": 1719
+    },
+    {
+      "split": "h18",
+      "auc": 0.8988338206263786,
+      "ap": 0.8132223170271542,
+      "n_val": 11694,
+      "n_illicit_val": 1971
+    },
+    {
+      "split": "h21",
+      "auc": 0.878430859455124,
+      "ap": 0.7995885262012997,
+      "n_val": 11705,
+      "n_illicit_val": 1773
+    },
+    {
+      "split": "h24",
+      "auc": 0.9953617926182317,
+      "ap": 0.9829902649828971,
+      "n_val": 7629,
+      "n_illicit_val": 1425
+    },
+    {
+      "split": "horizon",
+      "auc": 0.878430859455124,
+      "ap": 0.7995885262012997,
+      "n_val": 11705,
+      "n_illicit_val": 1773
+    }
+  ],
+  "summary": {
+    "auc_mean": 0.923051008223347,
+    "auc_std": 0.04421070071889719,
+    "auc_min": 0.878430859455124,
+    "ap_mean": 0.8571189353542314,
+    "auc_horizon": 0.878430859455124,
+    "ap_horizon": 0.7995885262012997,
+    "runtime_s": 25.2
+  },
+  "per_step": [
+    {
+      "split": "h15",
+      "time_step": 16,
+      "n_illicit": 128,
+      "auc": 0.9907105099502488
+    },
+    {
+      "split": "h15",
+      "time_step": 17,
+      "n_illicit": 99,
+      "auc": 0.9964107365792759
+    },
+    {
+      "split": "h15",
+      "time_step": 18,
+      "n_illicit": 52,
+      "auc": 0.9946359278703493
+    },
+    {
+      "split": "h15",
+      "time_step": 19,
+      "n_illicit": 80,
+      "auc": 0.9887593984962406
+    },
+    {
+      "split": "h15",
+      "time_step": 20,
+      "n_illicit": 260,
+      "auc": 0.9816826923076925
+    },
+    {
+      "split": "h15",
+      "time_step": 21,
+      "n_illicit": 100,
+      "auc": 0.9791682070240296
+    },
+    {
+      "split": "h15",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9882802949643125
+    },
+    {
+      "split": "h15",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.9254600512462148
+    },
+    {
+      "split": "h15",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.7589174348490328
+    },
+    {
+      "split": "h15",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9972938327873524
+    },
+    {
+      "split": "h15",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.8927652414885194
+    },
+    {
+      "split": "h15",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9926739926739927
+    },
+    {
+      "split": "h15",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 0.9991132131244458
+    },
+    {
+      "split": "h15",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.713828887969641
+    },
+    {
+      "split": "h18",
+      "time_step": 19,
+      "n_illicit": 80,
+      "auc": 0.9908270676691728
+    },
+    {
+      "split": "h18",
+      "time_step": 20,
+      "n_illicit": 260,
+      "auc": 0.9880408653846153
+    },
+    {
+      "split": "h18",
+      "time_step": 21,
+      "n_illicit": 100,
+      "auc": 0.9859334565619224
+    },
+    {
+      "split": "h18",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9936787728222721
+    },
+    {
+      "split": "h18",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.9315496988452964
+    },
+    {
+      "split": "h18",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.7182363664543556
+    },
+    {
+      "split": "h18",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9996973365617433
+    },
+    {
+      "split": "h18",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.9126088677751385
+    },
+    {
+      "split": "h18",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9956501831501832
+    },
+    {
+      "split": "h18",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 1.0
+    },
+    {
+      "split": "h18",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.726368230787216
+    },
+    {
+      "split": "h18",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9816954894407561
+    },
+    {
+      "split": "h18",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.7905316756216418
+    },
+    {
+      "split": "h18",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.8090562798433393
+    },
+    {
+      "split": "h21",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9989076856342916
+    },
+    {
+      "split": "h21",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.9530964027819374
+    },
+    {
+      "split": "h21",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.7233215000036903
+    },
+    {
+      "split": "h21",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9996261216350948
+    },
+    {
+      "split": "h21",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.9225306809184481
+    },
+    {
+      "split": "h21",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9986263736263736
+    },
+    {
+      "split": "h21",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 1.0
+    },
+    {
+      "split": "h21",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.6629413140051439
+    },
+    {
+      "split": "h21",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9855203125426878
+    },
+    {
+      "split": "h21",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.79517056103961
+    },
+    {
+      "split": "h21",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.8062187408718875
+    },
+    {
+      "split": "h21",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9927189515290202
+    },
+    {
+      "split": "h21",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.997907949790795
+    },
+    {
+      "split": "h21",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9942826802188319
+    },
+    {
+      "split": "h24",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9997329440250676
+    },
+    {
+      "split": "h24",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.9851049089469517
+    },
+    {
+      "split": "h24",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9986263736263736
+    },
+    {
+      "split": "h24",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 1.0
+    },
+    {
+      "split": "h24",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.9950180752144746
+    },
+    {
+      "split": "h24",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9911755867005437
+    },
+    {
+      "split": "h24",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.9817568411845558
+    },
+    {
+      "split": "h24",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.9979880894897796
+    },
+    {
+      "split": "h24",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9938631162887456
+    },
+    {
+      "split": "h24",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.9990953296392627
+    },
+    {
+      "split": "h24",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9955247513487375
+    },
+    {
+      "split": "horizon",
+      "time_step": 22,
+      "n_illicit": 158,
+      "auc": 0.9989076856342916
+    },
+    {
+      "split": "horizon",
+      "time_step": 23,
+      "n_illicit": 53,
+      "auc": 0.9530964027819374
+    },
+    {
+      "split": "horizon",
+      "time_step": 24,
+      "n_illicit": 137,
+      "auc": 0.7233215000036903
+    },
+    {
+      "split": "horizon",
+      "time_step": 25,
+      "n_illicit": 118,
+      "auc": 0.9996261216350948
+    },
+    {
+      "split": "horizon",
+      "time_step": 26,
+      "n_illicit": 96,
+      "auc": 0.9225306809184481
+    },
+    {
+      "split": "horizon",
+      "time_step": 27,
+      "n_illicit": 24,
+      "auc": 0.9986263736263736
+    },
+    {
+      "split": "horizon",
+      "time_step": 28,
+      "n_illicit": 85,
+      "auc": 1.0
+    },
+    {
+      "split": "horizon",
+      "time_step": 29,
+      "n_illicit": 329,
+      "auc": 0.6629413140051439
+    },
+    {
+      "split": "horizon",
+      "time_step": 30,
+      "n_illicit": 83,
+      "auc": 0.9855203125426878
+    },
+    {
+      "split": "horizon",
+      "time_step": 31,
+      "n_illicit": 106,
+      "auc": 0.79517056103961
+    },
+    {
+      "split": "horizon",
+      "time_step": 32,
+      "n_illicit": 342,
+      "auc": 0.8062187408718875
+    },
+    {
+      "split": "horizon",
+      "time_step": 33,
+      "n_illicit": 23,
+      "auc": 0.9927189515290202
+    },
+    {
+      "split": "horizon",
+      "time_step": 34,
+      "n_illicit": 37,
+      "auc": 0.997907949790795
+    },
+    {
+      "split": "horizon",
+      "time_step": 35,
+      "n_illicit": 182,
+      "auc": 0.9942826802188319
+    }
+  ],
+  "warnings": {
+    "n_convergence_warnings": 0,
+    "n_runtime_warnings": 0,
+    "n_other_warnings": 0
+  },
+  "warning_messages": [],
+  "environment": {
+    "python": "3.13.7",
+    "numpy": "2.2.6",
+    "pandas": "2.3.2",
+    "sklearn": "1.7.2",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O"
+  },
+  "git_commit": "40fd65f",
+  "git_dirty": "False",
+  "code_hash": "de6d863c0c16"
+}
