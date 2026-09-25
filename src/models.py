@@ -15,6 +15,8 @@ from sklearn.ensemble import (ExtraTreesClassifier, HistGradientBoostingClassifi
                               RandomForestClassifier)
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
+
+from src.ensembles import Blend, SeedEnsemble
 from sklearn.preprocessing import StandardScaler
 
 SEED = 42
@@ -85,17 +87,36 @@ def extratrees():
                                 n_jobs=-1, random_state=SEED)
 
 
-def hgb_tuned():
-    """Stage 6 random search, selected on inner chronological holdouts only."""
-    return HistGradientBoostingClassifier(learning_rate=0.05, max_iter=500, max_leaf_nodes=15,
-                                          min_samples_leaf=10, l2_regularization=0.0,
-                                          max_features=0.5, early_stopping=False,
-                                          class_weight="balanced", random_state=SEED)
+# --- ensembles (src/ensembles.py) -----------------------------------------
+def hgb_balanced_seed10():
+    """hgb_balanced fitted with 10 seeds, combined by average rank."""
+    return SeedEnsemble(base="hgb_balanced", n_seeds=10, random_state=SEED)
+
+
+def blend_hgb_lgbm():
+    return Blend(members=("hgb_balanced", "lgbm_balanced"), weights=(0.5, 0.5), random_state=SEED)
+
+
+def blend_hgb75_lgbm25():
+    return Blend(members=("hgb_balanced", "lgbm_balanced"), weights=(0.75, 0.25), random_state=SEED)
+
+
+def blend_hgb_xgb():
+    return Blend(members=("hgb_balanced", "xgb"), weights=(0.5, 0.5), random_state=SEED)
+
+
+def blend_hgb_lgbm_xgb():
+    return Blend(members=("hgb_balanced", "lgbm_balanced", "xgb"), weights=(1, 1, 1), random_state=SEED)
+
+
+def blend_seed10_lgbm():
+    return Blend(members=("hgb_balanced_seed10", "lgbm_balanced"), weights=(0.75, 0.25), random_state=SEED)
 
 
 MODELS = {"logreg": logreg, "logreg_balanced": logreg_balanced,
-          "hgb": hgb, "hgb_balanced": hgb_balanced, "hgb_tuned": hgb_tuned,
-          "rf": rf, "rf_balanced": rf_balanced, "extratrees": extratrees}
+          "hgb": hgb, "hgb_balanced": hgb_balanced,
+          "rf": rf, "rf_balanced": rf_balanced, "extratrees": extratrees,
+          "hgb_balanced_seed10": hgb_balanced_seed10}
 
 # --- optional libraries ---------------------------------------------------
 MISSING_LIBRARIES = {}
@@ -128,6 +149,16 @@ try:
     MODELS["xgb_weighted"] = lambda: AutoScalePosWeight(_xgb())
 except ImportError as e:  # pragma: no cover
     MISSING_LIBRARIES["xgboost"] = str(e)
+
+
+# Blends are registered only when their members exist (LightGBM/XGBoost are optional).
+for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanced"]),
+                                ("blend_hgb75_lgbm25", blend_hgb75_lgbm25, ["lgbm_balanced"]),
+                                ("blend_hgb_xgb", blend_hgb_xgb, ["xgb"]),
+                                ("blend_hgb_lgbm_xgb", blend_hgb_lgbm_xgb, ["lgbm_balanced", "xgb"]),
+                                ("blend_seed10_lgbm", blend_seed10_lgbm, ["lgbm_balanced"])]:
+    if all(n in MODELS for n in _needs):
+        MODELS[_name] = _factory
 
 
 def get_model_factory(name):

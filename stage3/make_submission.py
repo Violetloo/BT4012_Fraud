@@ -56,6 +56,9 @@ p.add_argument("--min-train-step", type=int, default=None,
                help="drop training rows before this time step (must match the validated run)")
 p.add_argument("--train-window", type=int, default=None,
                help="keep only the last N time steps of training data (must match the validated run)")
+p.add_argument("--per-step-normalise", action="store_true",
+               help="convert test predictions to percentile ranks within each time step "
+                    "(post-processing; justify it with stage7/per_step_normalisation.py)")
 p.add_argument("--recency-half-life", type=float, default=None,
                help="recency weighting half-life in time steps (must match the validated run)")
 args = p.parse_args()
@@ -133,6 +136,11 @@ with warnings.catch_warnings(record=True) as caught:
 classes = list(model.classes_)
 pred = np.asarray(proba)[:, classes.index(1)]
 
+if args.per_step_normalise:
+    from src.ensembles import per_step_rank
+    pred = per_step_rank(pred, test["time_step"].values)
+    print("Applied per-step rank normalisation to the test predictions")
+
 # 3. Validate the submission
 sub = pd.DataFrame({"index": test["index"].values, "target": pred})
 checks = []
@@ -173,7 +181,7 @@ record = {
     "model": " ".join(repr(model).split()), "params": params_now,
     "validated_run_id": args.run_id, "legacy_run": legacy,
     "min_train_step": args.min_train_step, "train_window": args.train_window,
-    "recency_half_life": args.recency_half_life,
+    "recency_half_life": args.recency_half_life, "per_step_normalised": bool(args.per_step_normalise),
     "training_rows": {"labelled": int(len(lab)), "illicit": int(y.sum()),
                       "time_steps": [int(lab["time_step"].min()), int(lab["time_step"].max())]},
     "prediction_summary": {"mean": float(pred.mean()), "n_unique": int(np.unique(pred).size),
