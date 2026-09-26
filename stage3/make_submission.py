@@ -33,7 +33,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from src.data import DATA_DIR  # noqa: E402
+from src.data import DATA_DIR, load_data  # noqa: E402
 from src.features import get_feature_columns  # noqa: E402
 from src.frames import load_prepared  # noqa: E402
 from src.models import get_model_factory  # noqa: E402
@@ -59,6 +59,11 @@ p.add_argument("--train-window", type=int, default=None,
 p.add_argument("--per-step-normalise", action="store_true",
                help="convert test predictions to percentile ranks within each time step "
                     "(post-processing; justify it with stage7/per_step_normalisation.py)")
+p.add_argument("--smooth-mode", default=None, choices=["nbr_mean", "nbr_max", "comp_mean"],
+               help="blend test predictions with neighbours'/component scores (post-processing; "
+                    "justify with stage8/score_smoothing.py)")
+p.add_argument("--smooth-alpha", type=float, default=0.2)
+p.add_argument("--smooth-iters", type=int, default=1)
 p.add_argument("--recency-half-life", type=float, default=None,
                help="recency weighting half-life in time steps (must match the validated run)")
 args = p.parse_args()
@@ -136,6 +141,14 @@ with warnings.catch_warnings(record=True) as caught:
 classes = list(model.classes_)
 pred = np.asarray(proba)[:, classes.index(1)]
 
+if args.smooth_mode:
+    from src.smoothing import smooth_scores
+    _, _, edges_all = load_data(args.data_dir)
+    pred = smooth_scores(pred, test["txId"].values, edges_all, args.smooth_mode,
+                         args.smooth_alpha, args.smooth_iters)
+    print(f"Smoothed predictions over the graph: mode={args.smooth_mode}, "
+          f"alpha={args.smooth_alpha}, iters={args.smooth_iters}")
+
 if args.per_step_normalise:
     from src.ensembles import per_step_rank
     pred = per_step_rank(pred, test["time_step"].values)
@@ -182,6 +195,8 @@ record = {
     "validated_run_id": args.run_id, "legacy_run": legacy,
     "min_train_step": args.min_train_step, "train_window": args.train_window,
     "recency_half_life": args.recency_half_life, "per_step_normalised": bool(args.per_step_normalise),
+    "smoothing": None if not args.smooth_mode else {"mode": args.smooth_mode, "alpha": args.smooth_alpha,
+                                                    "iters": args.smooth_iters},
     "training_rows": {"labelled": int(len(lab)), "illicit": int(y.sum()),
                       "time_steps": [int(lab["time_step"].min()), int(lab["time_step"].max())]},
     "prediction_summary": {"mean": float(pred.mean()), "n_unique": int(np.unique(pred).size),
