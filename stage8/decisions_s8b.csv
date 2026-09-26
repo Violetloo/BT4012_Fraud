@@ -1,0 +1,5 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+pseudo_hgb_raw_cmp,-0.01787,-0.06165,0,False,20260926-032605-pseudo_hgb_raw_cmp_s8b
+pseudo_hgb_w05_raw_cmp,-0.01232,-0.04078,0,False,20260926-032732-pseudo_hgb_w05_raw_cmp_s8b
+pseudo_hgb_loose_raw_cmp,-0.00535,-0.03945,0,False,20260926-032904-pseudo_hgb_loose_raw_cmp_s8b
+pseudo_hgb_2rounds_raw_cmp,-0.01134,-0.0477,0,False,20260926-033104-pseudo_hgb_2rounds_raw_cmp_s8b

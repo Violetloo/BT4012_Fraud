@@ -1,0 +1,6 @@
+config,n_features,auc_fold_mean,auc_fold_min,auc_horizon,auc_weak_steps,auc_h15,auc_h18,auc_h21,auc_h24,auc_mh_mean,auc_mh_min,run_id
+hgb_balanced_raw_cmp,162,0.98259,0.94509,0.91715,0.80154,0.92091,0.90961,0.91715,0.99699,0.93616,0.90961,20260926-032458-hgb_balanced_raw_cmp_s8b
+pseudo_hgb_raw_cmp,162,0.96472,0.88973,0.82666,0.64971,0.85682,0.81888,0.82666,0.9957,0.87452,0.81888,20260926-032605-pseudo_hgb_raw_cmp_s8b
+pseudo_hgb_w05_raw_cmp,162,0.97027,0.90575,0.85907,0.70044,0.87387,0.85289,0.85907,0.99571,0.89538,0.85289,20260926-032732-pseudo_hgb_w05_raw_cmp_s8b
+pseudo_hgb_loose_raw_cmp,162,0.97724,0.93163,0.86033,0.69733,0.88805,0.84226,0.86033,0.99624,0.89672,0.84226,20260926-032904-pseudo_hgb_loose_raw_cmp_s8b
+pseudo_hgb_2rounds_raw_cmp,162,0.97125,0.90887,0.83411,0.6601,0.86244,0.86141,0.83411,0.99589,0.88846,0.83411,20260926-033104-pseudo_hgb_2rounds_raw_cmp_s8b
