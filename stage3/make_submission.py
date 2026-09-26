@@ -74,9 +74,9 @@ train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
 cols = get_feature_columns(args.features, train)
 if args.model.startswith(("shift", "selftrain")):
-    from src.adaptation import register_default_target
-    register_default_target(train, test, cols)
-    print("Registered the target registry (train + test features, no labels)")
+    from src.adaptation import set_target
+    set_target(test[cols])
+    print(f"Target set to the {len(test):,} test rows (features only)")
 if args.model.startswith("pseudo"):
     from src.pseudo import register_default_pool
     register_default_pool(train, cols)

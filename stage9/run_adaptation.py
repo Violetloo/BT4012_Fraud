@@ -41,7 +41,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from src.adaptation import FIT_LOG, register_default_target  # noqa: E402
+from src.adaptation import FIT_LOG, set_target, split_target_hook  # noqa: E402
 from src.data import DATA_DIR  # noqa: E402
 from src.experiments import run_config, summarise  # noqa: E402
 from src.features import get_feature_columns  # noqa: E402
@@ -51,8 +51,8 @@ from src.models import MODELS, get_model_factory  # noqa: E402
 OUT = Path(__file__).resolve().parent
 FEATURES = "raw_cmp"
 BASELINE = "hgb_balanced"
-CANDIDATES = ["shift_hgb", "shift_hgb_clip5", "shift_hgb_clip3", "selftrain_target",
-              "selftrain_target_2rounds", "rank_xgb"]
+CANDIDATES = ["shift_hgb", "shift_hgb_clip3", "shift_hgb_reg", "shift_hgb_reg_clip3",
+              "selftrain_target", "rank_xgb"]
 
 
 def per_step_balanced(tr):
@@ -73,22 +73,34 @@ args = p.parse_args()
 
 train, test = load_prepared(args.data_dir, feature_sets=[FEATURES])
 cols = get_feature_columns(FEATURES, train)
-register_default_target(train, test, cols)
-print(f"Target registry: {len(train):,} train rows + {len(test):,} test rows, features only")
+hook = split_target_hook(cols)
+print("Target for each split: exactly the rows that split scores, labels withheld "
+      "(at submission time: the test rows)")
 
 names = [BASELINE] + [c for c in (args.models or CANDIDATES) if c in MODELS and c != BASELINE]
 rows = []
 for name in names:
     print(f"\n--- {name} ---")
     start = len(FIT_LOG)
+    needs_target = name.startswith(("shift", "selftrain"))
     rows.append(run_config(f"{name}_{FEATURES}", get_model_factory(name), train, cols, args.version,
-                           description=f"Stage 9 adaptation: {name} on {FEATURES}"))
+                           description=f"Stage 9 adaptation: {name} on {FEATURES}",
+                           **({"split_hook": hook} if needs_target else {})))
     fits = FIT_LOG[start:]
+    # written after every configuration, so an interrupted run keeps its evidence
+    pd.DataFrame(FIT_LOG).to_json(OUT / f"adaptation_fit_log_{args.version}.json",
+                                  orient="records", indent=2)
     if fits and fits[0]["model"] == "covariate_shift":
         f = pd.DataFrame(fits)
-        print(f"  weights: max {f['weight_max'].mean():.2f} (mean over fits), "
-              f"90th pct {f['weight_p90'].mean():.2f}; target rows per fit "
-              f"{int(f['n_target'].mean()):,}")
+        q = np.vstack(f["source_p_quantiles"].values).mean(axis=0)
+        print(f"  target rows per fit {int(f['n_target'].mean()):,}; source P(target) quantiles "
+              f"1% {q[0]:.3g}, 50% {q[2]:.3g}, 99% {q[4]:.3g}")
+        print(f"  weights: sd {f['weight_sd'].mean():.3f}, at clip floor "
+              f"{f['share_at_clip_floor'].mean():.1%}, at ceiling {f['share_at_clip_ceiling'].mean():.1%}, "
+              f"effective sample size {f['ess_fraction'].mean():.1%} of rows")
+        if f["weight_sd"].mean() < 1e-6:
+            print("  -> weights collapsed to a constant: this configuration cannot differ from the "
+                  "baseline")
     elif fits and fits[0]["model"] == "self_train_target":
         added = [r["n_added"] for f in fits for r in f["rounds"]]
         pos = [r["pseudo_positive"] for f in fits for r in f["rounds"]]
@@ -104,7 +116,7 @@ if not args.skip_per_step:
                            sample_weight_fn=per_step_balanced))
 
 tab, dec, best = summarise(rows, f"{BASELINE}_{FEATURES}", OUT, args.version, title="configuration")
-pd.DataFrame(FIT_LOG).to_json(OUT / f"adaptation_fit_log_{args.version}.json", orient="records", indent=2)
+
 if best is not None:
     config = best["config"]
     if config.endswith("per_step_balanced"):

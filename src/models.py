@@ -185,34 +185,39 @@ def pseudo_hgb_2rounds():
 MODELS.update({"pseudo_hgb": pseudo_hgb, "pseudo_hgb_w05": pseudo_hgb_w05,
                "pseudo_hgb_loose": pseudo_hgb_loose, "pseudo_hgb_2rounds": pseudo_hgb_2rounds})
 
-# --- adapting to the target period (src/adaptation.py) --------------------
+# --- adapting to the rows being scored (src/adaptation.py) ----------------
+# These need a target: pass split_hook=split_target_hook(cols) to evaluate(), or call
+# set_target(test_features) before fitting for a submission.
 def shift_hgb():
-    """Training rows weighted by how much they resemble the period being predicted."""
-    return CovariateShiftWeighted(base="hgb_balanced", clip=10.0, random_state=SEED)
-
-
-def shift_hgb_clip5():
-    return CovariateShiftWeighted(base="hgb_balanced", clip=5.0, random_state=SEED)
+    """Training rows weighted by resemblance to the rows being scored (clip 10)."""
+    return CovariateShiftWeighted(base="hgb_balanced", clip=10.0, domain_model="flexible",
+                                  random_state=SEED)
 
 
 def shift_hgb_clip3():
-    return CovariateShiftWeighted(base="hgb_balanced", clip=3.0, random_state=SEED)
+    return CovariateShiftWeighted(base="hgb_balanced", clip=3.0, domain_model="flexible",
+                                  random_state=SEED)
+
+
+def shift_hgb_reg():
+    """Same, with a deliberately smooth domain classifier so the ratios stay usable."""
+    return CovariateShiftWeighted(base="hgb_balanced", clip=10.0, domain_model="regularised",
+                                  random_state=SEED)
+
+
+def shift_hgb_reg_clip3():
+    return CovariateShiftWeighted(base="hgb_balanced", clip=3.0, domain_model="regularised",
+                                  random_state=SEED)
 
 
 def selftrain_target():
-    """Confident predictions on the target period added back as training rows."""
     return SelfTrainTarget(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=0.5, rounds=1,
                            random_state=SEED)
 
 
-def selftrain_target_2rounds():
-    return SelfTrainTarget(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=0.5, rounds=2,
-                           random_state=SEED)
-
-
-MODELS.update({"shift_hgb": shift_hgb, "shift_hgb_clip5": shift_hgb_clip5,
-               "shift_hgb_clip3": shift_hgb_clip3, "selftrain_target": selftrain_target,
-               "selftrain_target_2rounds": selftrain_target_2rounds})
+MODELS.update({"shift_hgb": shift_hgb, "shift_hgb_clip3": shift_hgb_clip3,
+               "shift_hgb_reg": shift_hgb_reg, "shift_hgb_reg_clip3": shift_hgb_reg_clip3,
+               "selftrain_target": selftrain_target})
 
 # Blends are registered only when their members exist (LightGBM/XGBoost are optional).
 for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanced"]),

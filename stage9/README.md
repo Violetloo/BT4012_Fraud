@@ -1,52 +1,56 @@
-# Stage 9: adapting to the period being scored
+# Stage 9 (corrected): adapting to the rows being scored
 
-Every stage so far learned from the training periods and hoped the result carried forward. Stage 6 measured how badly that assumption holds: a classifier separates early from late periods with AUC 0.961. The responses tried then — dropping drifting features, ranking within steps, shrinking the window — all threw information away. Stage 9 does the opposite: it uses the **feature distribution of the period being predicted**.
+Stage 6 measured how far the feature distributions move between periods (early-vs-late adversarial AUC 0.961) and tried to cope by throwing information away: dropping drifting features, ranking within steps, shrinking the training window. Stage 9 instead reweights or extends the training set using the **features of the rows being scored**. Their labels are never used.
 
-Labels are never used. The competition supplies `test.csv`, so this is transductive learning, and it is the first thing in the project to use the test features at all.
+## What was wrong in the first version, and what changed
+
+1. **The target was the wrong set of rows.** It was inferred as "the next 14 steps after the last training step", so fold1 adapted to steps 16–29 while scoring 16–20, and fold4's target reached into the test period. It also included unlabelled training rows, a population the test file does not contain. Now `evaluate(split_hook=...)` hands each split **exactly the rows it will score**, labels withheld, which is the same situation as submission time (target = the test rows).
+2. **The density ratio was mis-scaled.** It is `p / (1 - p) × n_source / n_target`. The sample-size factor cancels under mean normalisation alone, but clipping happens first, so it changes which rows hit the clip and by how much.
+3. **A collapse to constant weights was invisible.** Every fit now records the source probability quantiles before clipping, the share of weights at each clip boundary, the weight spread, and the effective sample size `(Σw)² / Σw²`. The script prints them and says plainly when weights have collapsed, in which case the configuration cannot differ from the baseline.
+4. **Diagnostics could be lost.** The fit log is now written after every configuration, so an interrupted run keeps the evidence it has already produced.
+
+A second domain classifier is also available. `shift_hgb`/`shift_hgb_clip3` use a flexible one; `shift_hgb_reg`/`shift_hgb_reg_clip3` use a deliberately smooth one (8 leaves, strong L2, 100 minimum samples per leaf). A flexible classifier that separates the periods almost perfectly pushes every source probability toward zero, which makes the ratios useless; a smoother one keeps them usable. Which behaviour actually occurs is now visible in the diagnostics rather than assumed.
 
 ## Configurations
 
 | Name | What it does |
 |---|---|
-| `shift_hgb`, `shift_hgb_clip5`, `shift_hgb_clip3` | Importance weighting for covariate shift: a classifier separates training rows from target-period rows, and each training row is weighted by its density ratio `p / (1 - p)`, clipped at 10 / 5 / 3. Rows that resemble the period being predicted count more. Weights are **cross-fitted**, so a row's weight never comes from a model fitted on that row. |
-| `selftrain_target`, `selftrain_target_2rounds` | Confident predictions on the **target period's** rows are added back as training rows. Stage 8b did this with unlabelled *training* rows and failed (97.5% pseudo-licit, diluting the rare class); here the aim is adapting the decision boundary to the distribution being scored, not adding volume. |
-| `per_step_balanced` | Training rows weighted so each time step contributes equally, instead of the largest steps dominating. |
-| `rank_xgb` | A pairwise ranking objective instead of log loss, since the metric is AUC. Scores are mapped to (0, 1) by rank, which leaves AUC unchanged. Requires XGBoost. |
-
-## How the target window is chosen
-
-Each fit infers it from the rows it was given: the target is the steps **after** the last training step, up to 14 ahead. In validation that is the block being predicted; at submission time it is the test period (steps 36–49). The same code therefore runs in validation and at submission, which is what makes the validation estimate meaningful.
-
-## Why this differs from what failed before
-
-- Recency weighting (Stage 6) assumed a decay; these weights are **measured** against the actual target distribution.
-- Dropping drifting features (Stage 6) removed signal; reweighting keeps every feature and changes only which rows the model listens to.
-- Pseudo-labelling training rows (Stage 8b) added mostly-licit volume; self-training on the target period changes where the boundary sits in the region being scored.
+| `shift_hgb`, `shift_hgb_clip3` | importance weighting, flexible domain classifier, clip 10 / 3 |
+| `shift_hgb_reg`, `shift_hgb_reg_clip3` | the same with the regularised domain classifier |
+| `selftrain_target` | confident predictions on the scored rows added back as training rows |
+| `per_step_balanced` | every time step contributes equal weight |
+| `rank_xgb` | pairwise ranking objective instead of log loss (needs XGBoost) |
 
 ## How to run
 
 ```bash
-python3 stage9/run_adaptation.py            # ~45-70 minutes
-# or a subset
-python3 stage9/run_adaptation.py --models shift_hgb shift_hgb_clip5 --version s9a
+# the corrected comparison first: one shift configuration against the baseline
+python3 stage9/run_adaptation.py --models shift_hgb --skip-per-step --version s9fix
+
+# then the rest, if the diagnostics show the weighting is doing something
+python3 stage9/run_adaptation.py --models shift_hgb_clip3 shift_hgb_reg shift_hgb_reg_clip3 --version s9fix2
 ```
 
-The script reports, per configuration, the weight range the shift models produced and how many target rows self-training added, with the pseudo-positive share to compare against the 11.7% illicit rate.
+Leave `selftrain_target` aside until the simpler experiment behaves as intended.
 
-## Judging and submitting
+## Reading the diagnostics
 
-The usual rule: fold mean not worse by more than 0.002, multi-horizon mean improved, at least 3 of 4 splits improved.
+- **Source P(target) quantiles.** If the 99th percentile is still near zero, no training row looks like the rows being scored, and importance weighting has nothing to work with.
+- **Share at the clip floor.** A large share means the clip, not the data, is setting most weights.
+- **Effective sample size.** The fraction of rows the weighting effectively keeps. A very low value means the model is training on a small subset, which trades bias against variance and may hurt.
+- **Weight spread.** Near zero means the configuration is the baseline in disguise.
+
+## Limits on what these results can show
+
+- A failed reweighting does **not** establish concept drift. Poor probability estimates, clipping, a population mismatch or insufficient overlap all produce the same outcome.
+- This stage is not the first use of test features: the graph features (Stage 5) and rank transformations (Stage 6) were transductive too. What is new here is using the target's distribution to change **how training rows are weighted**.
+- Stage 8b's pseudo-labelling failure was reported with a class-dilution explanation. That remains unsupported: the base model rebalances classes internally, so the mechanism is not established.
+
+## Submitting
 
 ```bash
-# a model
 python3 stage3/make_submission.py --model shift_hgb --features raw_cmp --run-id <id>
-# weights rather than a model
-python3 stage3/make_submission.py --model hgb_balanced --features raw_cmp --run-id <id> \
-    --sample-weight per_step_balanced
+python3 stage3/make_submission.py --model hgb_balanced --features raw_cmp --run-id <id> --sample-weight per_step_balanced
 ```
 
-`make_submission.py` registers the target rows automatically for model names starting with `shift` or `selftrain`, and checks named weights against the validated run.
-
-## Interpreting a failure
-
-If reweighting toward the target period does not help either, that is a strong statement for the report: the drift is not a covariate shift that can be corrected by reweighting, which points to the relationship between features and labels changing over time (concept drift) rather than just the inputs moving. No amount of reweighting fixes that; only labels from the newer period would.
+`make_submission.py` sets the target to the test rows for model names starting with `shift` or `selftrain`, which is the same code path validation used.

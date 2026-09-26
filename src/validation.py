@@ -227,7 +227,7 @@ def _fit_predict(make_model, X_tr, y_tr, X_va, where, sample_weight=None):
 def evaluate(name, make_model, frame, feature_cols, description="", notes="",
              folds=FOLDS, horizon=HORIZON, log=True, save_predictions=True, verbose=True,
              allow_duplicate_name=False, require_random_state=True,
-             min_train_step=None, train_window=None, sample_weight_fn=None):
+             min_train_step=None, train_window=None, sample_weight_fn=None, split_hook=None):
     """Train and score one configuration on every chronological split.
 
     Parameters
@@ -289,6 +289,8 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
         if not set(tr["txId"]).isdisjoint(va["txId"]):
             raise ValueError(f"{s.name}: a transaction appears in both training and validation")
 
+        if split_hook is not None:
+            split_hook(s, tr, va)
         w = None if sample_weight_fn is None else np.asarray(sample_weight_fn(tr), dtype=float)
         if w is not None and len(w) != len(tr):
             raise ValueError(f"{s.name}: sample_weight_fn returned {len(w)} weights for {len(tr)} rows")
@@ -344,6 +346,7 @@ def evaluate(name, make_model, frame, feature_cols, description="", notes="",
             "splits": [asdict(s) for s in splits], "feature_hash": fhash, "n_features": len(feature_cols),
             "min_train_step": min_train_step, "train_window": train_window,
             "sample_weight_fn": None if sample_weight_fn is None else getattr(sample_weight_fn, "__name__", repr(sample_weight_fn)),
+            "split_hook": None if split_hook is None else getattr(split_hook, "__name__", repr(split_hook)),
             "feature_columns": list(feature_cols), "data_hash": frame_hash(frame, feature_cols),
             "metrics": res.reset_index().to_dict(orient="records"), "summary": summary,
             "per_step": per_step, "warnings": warn_counts,
