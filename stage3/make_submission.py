@@ -64,6 +64,8 @@ p.add_argument("--smooth-mode", default=None, choices=["nbr_mean", "nbr_max", "c
                     "justify with stage8/score_smoothing.py)")
 p.add_argument("--smooth-alpha", type=float, default=0.2)
 p.add_argument("--smooth-iters", type=int, default=1)
+p.add_argument("--sample-weight", default=None, choices=["per_step_balanced"],
+               help="named training weights (must match the validated run)")
 p.add_argument("--recency-half-life", type=float, default=None,
                help="recency weighting half-life in time steps (must match the validated run)")
 args = p.parse_args()
@@ -71,6 +73,10 @@ args = p.parse_args()
 train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
 cols = get_feature_columns(args.features, train)
+if args.model.startswith(("shift", "selftrain")):
+    from src.adaptation import register_default_target
+    register_default_target(train, test, cols)
+    print("Registered the target registry (train + test features, no labels)")
 if args.model.startswith("pseudo"):
     from src.pseudo import register_default_pool
     register_default_pool(train, cols)
@@ -100,7 +106,9 @@ if run_cols is None:
 if run_cols is not None and list(run_cols) != list(cols):
     problems.append("feature list differs from the validated run (content or order)")
 
-weight_name = None if args.recency_half_life is None else f"recency_halflife_{args.recency_half_life:g}"
+weight_name = args.sample_weight
+if args.recency_half_life is not None:
+    weight_name = f"recency_halflife_{args.recency_half_life:g}"
 if run.get("train_window") != args.train_window:
     problems.append(f"train_window differs: run {run.get('train_window')} vs {args.train_window}")
 if run.get("min_train_step") != args.min_train_step:
@@ -138,6 +146,10 @@ fit_kwargs = {}
 if args.recency_half_life is not None:
     last = lab["time_step"].max()
     fit_kwargs["sample_weight"] = 0.5 ** ((last - lab["time_step"].values) / args.recency_half_life)
+elif args.sample_weight == "per_step_balanced":
+    counts = lab["time_step"].map(lab["time_step"].value_counts()).values
+    w = 1.0 / counts
+    fit_kwargs["sample_weight"] = w / w.mean()
 with warnings.catch_warnings(record=True) as caught:
     warnings.simplefilter("always")
     model.fit(lab[cols], y, **fit_kwargs)
@@ -198,7 +210,7 @@ record = {
     "model": " ".join(repr(model).split()), "params": params_now,
     "validated_run_id": args.run_id, "legacy_run": legacy,
     "min_train_step": args.min_train_step, "train_window": args.train_window,
-    "recency_half_life": args.recency_half_life, "per_step_normalised": bool(args.per_step_normalise),
+    "recency_half_life": args.recency_half_life, "sample_weight": args.sample_weight, "per_step_normalised": bool(args.per_step_normalise),
     "smoothing": None if not args.smooth_mode else {"mode": args.smooth_mode, "alpha": args.smooth_alpha,
                                                     "iters": args.smooth_iters},
     "training_rows": {"labelled": int(len(lab)), "illicit": int(y.sum()),

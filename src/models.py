@@ -11,12 +11,15 @@ absent from MODELS and the comparison script skips them with a note.
 """
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
+import pandas as pd
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.ensemble import (ExtraTreesClassifier, HistGradientBoostingClassifier,
                               RandomForestClassifier)
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 
 from src.ensembles import Blend, SeedEnsemble
+from src.adaptation import CovariateShiftWeighted, SelfTrainTarget
 from src.pseudo import PseudoLabel
 from sklearn.preprocessing import StandardScaler
 
@@ -182,6 +185,35 @@ def pseudo_hgb_2rounds():
 MODELS.update({"pseudo_hgb": pseudo_hgb, "pseudo_hgb_w05": pseudo_hgb_w05,
                "pseudo_hgb_loose": pseudo_hgb_loose, "pseudo_hgb_2rounds": pseudo_hgb_2rounds})
 
+# --- adapting to the target period (src/adaptation.py) --------------------
+def shift_hgb():
+    """Training rows weighted by how much they resemble the period being predicted."""
+    return CovariateShiftWeighted(base="hgb_balanced", clip=10.0, random_state=SEED)
+
+
+def shift_hgb_clip5():
+    return CovariateShiftWeighted(base="hgb_balanced", clip=5.0, random_state=SEED)
+
+
+def shift_hgb_clip3():
+    return CovariateShiftWeighted(base="hgb_balanced", clip=3.0, random_state=SEED)
+
+
+def selftrain_target():
+    """Confident predictions on the target period added back as training rows."""
+    return SelfTrainTarget(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=0.5, rounds=1,
+                           random_state=SEED)
+
+
+def selftrain_target_2rounds():
+    return SelfTrainTarget(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=0.5, rounds=2,
+                           random_state=SEED)
+
+
+MODELS.update({"shift_hgb": shift_hgb, "shift_hgb_clip5": shift_hgb_clip5,
+               "shift_hgb_clip3": shift_hgb_clip3, "selftrain_target": selftrain_target,
+               "selftrain_target_2rounds": selftrain_target_2rounds})
+
 # Blends are registered only when their members exist (LightGBM/XGBoost are optional).
 for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanced"]),
                                 ("blend_hgb75_lgbm25", blend_hgb75_lgbm25, ["lgbm_balanced"]),
@@ -190,6 +222,52 @@ for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanc
                                 ("blend_seed10_lgbm", blend_seed10_lgbm, ["lgbm_balanced"])]:
     if all(n in MODELS for n in _needs):
         MODELS[_name] = _factory
+
+
+if "xgb" in MODELS:
+    class RankXGB(BaseEstimator, ClassifierMixin):
+        """XGBoost with a pairwise ranking objective instead of log loss.
+
+        Every model so far optimises log loss and is then scored on AUC. A pairwise
+        ranking objective optimises ordering directly. Scores are mapped to (0, 1) by
+        rank, which leaves AUC unchanged and keeps the submission format valid.
+        Groups: one group of all rows, or one group per time step.
+        """
+
+        def __init__(self, per_step_groups=False, n_estimators=300, learning_rate=0.05,
+                     max_depth=6, step_lookup=None, random_state=SEED):
+            self.per_step_groups = per_step_groups
+            self.n_estimators = n_estimators
+            self.learning_rate = learning_rate
+            self.max_depth = max_depth
+            self.step_lookup = step_lookup
+            self.random_state = random_state
+
+        def fit(self, X, y):
+            import numpy as np
+            from xgboost import XGBRanker
+            y = np.asarray(y)
+            if self.per_step_groups and self.step_lookup is not None:
+                steps = self.step_lookup.loc[X.index].values
+                order = np.argsort(steps, kind="stable")
+                X, y, steps = X.iloc[order], y[order], steps[order]
+                group = pd.Series(steps).value_counts(sort=False).reindex(pd.unique(steps)).values
+            else:
+                group = [len(X)]
+            self.model_ = XGBRanker(objective="rank:pairwise", n_estimators=self.n_estimators,
+                                    learning_rate=self.learning_rate, max_depth=self.max_depth,
+                                    tree_method="hist", n_jobs=-1, random_state=self.random_state)
+            self.model_.fit(X, y, group=group)
+            self.classes_ = np.array([0, 1])
+            return self
+
+        def predict_proba(self, X):
+            import numpy as np
+            from scipy.stats import rankdata
+            r = rankdata(self.model_.predict(X)) / (len(X) + 1)
+            return np.column_stack([1 - r, r])
+
+    MODELS["rank_xgb"] = lambda: RankXGB(per_step_groups=False, random_state=SEED)
 
 
 def get_model_factory(name):
