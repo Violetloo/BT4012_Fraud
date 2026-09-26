@@ -1,0 +1,3 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+rank_xgb_raw_cmp,-0.13167,-0.14039,0,False,20260926-044700-rank_xgb_raw_cmp_s9v2
+hgb_balanced_raw_cmp_per_step_balanced,0.0034,-0.0003,2,False,20260926-044726-hgb_balanced_raw_cmp_per_step_balanced_s9v2
