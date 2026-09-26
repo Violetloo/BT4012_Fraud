@@ -71,6 +71,10 @@ args = p.parse_args()
 train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
 cols = get_feature_columns(args.features, train)
+if args.model.startswith("pseudo"):
+    from src.pseudo import register_default_pool
+    register_default_pool(train, cols)
+    print(f"Registered the unlabelled pool ({int(train['label'].isna().sum()):,} rows)")
 model = get_model_factory(args.model)()
 
 # 1. Exact match with the validated run

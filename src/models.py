@@ -17,6 +17,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 
 from src.ensembles import Blend, SeedEnsemble
+from src.pseudo import PseudoLabel
 from sklearn.preprocessing import StandardScaler
 
 SEED = 42
@@ -150,6 +151,36 @@ try:
 except ImportError as e:  # pragma: no cover
     MISSING_LIBRARIES["xgboost"] = str(e)
 
+
+# --- pseudo-labelling (src/pseudo.py) -------------------------------------
+# The unlabelled pool is registered by name before use (register_default_pool), so a
+# model's parameters stay small and printable.
+def pseudo_hgb():
+    """Confident pseudo-labels (p >= 0.99 or <= 0.01), full weight, one round."""
+    return PseudoLabel(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=1.0, rounds=1,
+                       random_state=SEED)
+
+
+def pseudo_hgb_w05():
+    """Same, but pseudo-labelled rows count half as much as real ones."""
+    return PseudoLabel(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=0.5, rounds=1,
+                       random_state=SEED)
+
+
+def pseudo_hgb_loose():
+    """A looser confidence band (0.95 / 0.05), half weight."""
+    return PseudoLabel(base="hgb_balanced", high=0.95, low=0.05, pseudo_weight=0.5, rounds=1,
+                       random_state=SEED)
+
+
+def pseudo_hgb_2rounds():
+    """Two rounds of confident pseudo-labelling at half weight."""
+    return PseudoLabel(base="hgb_balanced", high=0.99, low=0.01, pseudo_weight=0.5, rounds=2,
+                       random_state=SEED)
+
+
+MODELS.update({"pseudo_hgb": pseudo_hgb, "pseudo_hgb_w05": pseudo_hgb_w05,
+               "pseudo_hgb_loose": pseudo_hgb_loose, "pseudo_hgb_2rounds": pseudo_hgb_2rounds})
 
 # Blends are registered only when their members exist (LightGBM/XGBoost are optional).
 for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanced"]),

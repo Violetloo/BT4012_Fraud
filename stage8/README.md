@@ -50,3 +50,40 @@ The settings are recorded in the submission's JSON, alongside the validated run.
 ## If it fails
 
 That is a clean result for the report: score-level graph information adds nothing beyond the supplied features, which already include neighbourhood aggregates. Combined with Stage 5, it would say the graph in this dataset has been thoroughly exploited by the features already provided.
+
+---
+
+# Stage 8b: pseudo-labelling
+
+78% of `train.csv` (110,537 rows) has no label and has never been used for fitting. A first model scores those rows, the most confident predictions are added to the training set with their predicted labels, and the model is refitted.
+
+## Keeping it leak-free
+
+Inside **every** fit, the pool is restricted to unlabelled rows whose time step is at or before the last step of the training rows that fit received. A split validating steps 26–30 therefore never sees unlabelled rows from those steps, in any form. Test rows are never in the pool: their steps are later than any training window.
+
+The fit log (`stage8/pseudo_fit_log_<version>.json`) records each fit's last training step and how many pool rows were available, so the restriction is auditable.
+
+## Variants
+
+| Model | Confidence band | Weight | Rounds |
+|---|---|---|---|
+| `pseudo_hgb` | p ≥ 0.99 or ≤ 0.01 | 1.0 | 1 |
+| `pseudo_hgb_w05` | p ≥ 0.99 or ≤ 0.01 | 0.5 | 1 |
+| `pseudo_hgb_loose` | p ≥ 0.95 or ≤ 0.05 | 0.5 | 1 |
+| `pseudo_hgb_2rounds` | p ≥ 0.99 or ≤ 0.01 | 0.5 | 2 |
+
+Down-weighting matters because pseudo-labels are guesses: at weight 1.0 they can outvote the real labels, since the pool is far larger than the labelled set.
+
+## The known risk
+
+Stage 1 found unlabelled rows differ from labelled ones (median KS 0.14 across features). Confident predictions on them may reflect the model's existing biases rather than new information, which is exactly how pseudo-labelling degrades a model. The script reports, per variant, how many rows each fit added and what share were pseudo-positive. Compare that share with the 11.7% illicit rate of the labelled data: a much lower share means the pool is being labelled almost entirely licit, which adds little.
+
+## How to run
+
+```bash
+python3 stage8/run_pseudo_labelling.py        # ~40-60 minutes (each fit trains twice)
+```
+
+## Judging it
+
+The usual rule, and with more scepticism than usual: this is the highest-variance change in the project, and validation has predicted the leaderboard correctly once in four attempts. A result inside ±0.002 on the multi-horizon mean is not worth a submission.
