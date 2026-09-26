@@ -18,7 +18,7 @@ from sklearn.ensemble import (ExtraTreesClassifier, HistGradientBoostingClassifi
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 
-from src.ensembles import Blend, SeedEnsemble
+from src.ensembles import Blend, FeatureSetBlend, SeedEnsemble
 from src.adaptation import CovariateShiftWeighted, SelfTrainTarget
 from src.pseudo import PseudoLabel
 from sklearn.preprocessing import StandardScaler
@@ -218,6 +218,35 @@ def selftrain_target():
 MODELS.update({"shift_hgb": shift_hgb, "shift_hgb_clip3": shift_hgb_clip3,
                "shift_hgb_reg": shift_hgb_reg, "shift_hgb_reg_clip3": shift_hgb_reg_clip3,
                "selftrain_target": selftrain_target})
+
+# --- blends across feature sets (views registered by the running script) ---
+def fsblend_cmp_avl():
+    return FeatureSetBlend(base="hgb_balanced", views=("raw_cmp", "raw_avl"), random_state=SEED)
+
+
+def fsblend_cmp_avl_all():
+    return FeatureSetBlend(base="hgb_balanced", views=("raw_cmp", "raw_avl", "raw_all"),
+                           random_state=SEED)
+
+
+def fsblend_cmp_avl_notime():
+    return FeatureSetBlend(base="hgb_balanced", views=("raw_cmp", "raw_avl", "raw_notime"),
+                           random_state=SEED)
+
+
+def fsblend_cmp2_avl1():
+    return FeatureSetBlend(base="hgb_balanced", views=("raw_cmp", "raw_avl"), weights=(2, 1),
+                           random_state=SEED)
+
+
+def fsblend_cmp_avl_drop5():
+    return FeatureSetBlend(base="hgb_balanced", views=("raw_cmp", "raw_avl", "raw_cmp_drop5"),
+                           random_state=SEED)
+
+
+MODELS.update({"fsblend_cmp_avl": fsblend_cmp_avl, "fsblend_cmp_avl_all": fsblend_cmp_avl_all,
+               "fsblend_cmp_avl_notime": fsblend_cmp_avl_notime, "fsblend_cmp2_avl1": fsblend_cmp2_avl1,
+               "fsblend_cmp_avl_drop5": fsblend_cmp_avl_drop5})
 
 # Blends are registered only when their members exist (LightGBM/XGBoost are optional).
 for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanced"]),

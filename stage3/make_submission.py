@@ -73,6 +73,19 @@ args = p.parse_args()
 train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
 cols = get_feature_columns(args.features, train)
+if args.model.startswith("fsblend"):
+    from src.ensembles import register_views, union_columns
+    from src.features import FEATURE_SETS
+    views = {}
+    for n in ["raw_cmp", "raw_avl", "raw_all", "raw_notime", "raw_cmp_drop5"]:
+        if n in FEATURE_SETS:
+            try:
+                views[n] = get_feature_columns(n, train)
+            except FileNotFoundError:
+                pass
+    register_views(views)
+    cols = union_columns(get_model_factory(args.model)().views)
+    print(f"Registered {len(views)} feature views; union has {len(cols)} columns")
 if args.model.startswith(("shift", "selftrain")):
     from src.adaptation import set_target
     set_target(test[cols])

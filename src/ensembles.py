@@ -93,6 +93,58 @@ class Blend(BaseEstimator, ClassifierMixin):
         return np.column_stack([1 - ranks, ranks])
 
 
+# --- blending across FEATURE SETS -----------------------------------------
+# Stage 7 blended different libraries on the same features and gained nothing: the
+# members were too alike. Feature diversity is a different axis. Views are registered by
+# name so model parameters stay small and printable; evaluate() is given the union of
+# their columns and each member sees only its own view.
+VIEWS = {}
+
+
+def register_views(views):
+    """views: {name: [column, ...]}"""
+    VIEWS.update({k: list(v) for k, v in views.items()})
+
+
+def union_columns(view_names):
+    seen, out = set(), []
+    for name in view_names:
+        for c in VIEWS[name]:
+            if c not in seen:
+                seen.add(c)
+                out.append(c)
+    return out
+
+
+class FeatureSetBlend(BaseEstimator, ClassifierMixin):
+    """One model fitted on several feature views, combined by weighted average rank."""
+
+    def __init__(self, base="hgb_balanced", views=("raw_cmp", "raw_avl"), weights=None,
+                 random_state=SEED):
+        self.base = base
+        self.views = views
+        self.weights = weights
+        self.random_state = random_state
+
+    def fit(self, X, y):
+        from src.models import get_model_factory
+        missing = [v for v in self.views if v not in VIEWS]
+        if missing:
+            raise ValueError(f"feature views not registered: {missing}")
+        self.models_ = [get_model_factory(self.base)().fit(X[VIEWS[v]], y) for v in self.views]
+        w = np.ones(len(self.views)) if self.weights is None else np.asarray(self.weights, dtype=float)
+        self.weights_ = w / w.sum()
+        self.classes_ = self.models_[0].classes_
+        return self
+
+    def predict_proba(self, X):
+        ranks = np.zeros(len(X))
+        for w, v, m in zip(self.weights_, self.views, self.models_):
+            p = m.predict_proba(X[VIEWS[v]])[:, list(m.classes_).index(1)]
+            ranks += w * _rank01(p)
+        return np.column_stack([1 - ranks, ranks])
+
+
 def per_step_rank(pred, time_step):
     """Percentile rank of each prediction within its own time step.
 
