@@ -1,0 +1,6 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+fsblend_cmp_avl,0.00112,-0.00088,2,False,20260926-051443-fsblend_cmp_avl_s10v1
+fsblend_cmp2_avl1,0.00081,-0.00043,2,False,20260926-051608-fsblend_cmp2_avl1_s10v1
+fsblend_cmp_avl_all,0.00065,-0.00254,2,False,20260926-051747-fsblend_cmp_avl_all_s10v1
+fsblend_cmp_avl_notime,0.00104,-0.00299,2,False,20260926-051940-fsblend_cmp_avl_notime_s10v1
+fsblend_cmp_avl_drop5,0.00203,0.00077,2,False,20260926-052135-fsblend_cmp_avl_drop5_s10v1

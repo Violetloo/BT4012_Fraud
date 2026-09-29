@@ -1,0 +1,10 @@
+candidate,model,features,extra,run_id,auc_fold_mean,auc_mh_mean,why,submission_file
+drop5,hgb_balanced,raw_cmp_drop5,,20260926-054141-probe_drop5_s10probe,0.98501,0.9363,drift-prone features removed (Stage 6 trade-off),/Users/vl/BT4012_Fraud/submissions/20260926-054212_hgb_balanced_raw_cmp_drop5.csv
+blend_lgbm,blend_hgb75_lgbm25,raw_cmp,,20260926-053711-probe_blend_lgbm_s10probe,0.98277,0.93609,"library blend, near-identical validation",/Users/vl/BT4012_Fraud/submissions/20260926-053756_blend_hgb75_lgbm25_raw_cmp.csv
+per_step,hgb_balanced,raw_cmp,--sample-weight per_step_balanced,20260926-053529-probe_per_step_s10probe,0.98599,0.93586,best fold mean (0.9860) and best worst-fold (0.9593) of any configuration,/Users/vl/BT4012_Fraud/submissions/20260926-053557_hgb_balanced_raw_cmp.csv
+fsblend_cmp_avl,fsblend_cmp_avl,raw_cmp,,20260926-053832-probe_fsblend_cmp_avl_s10probe,0.98371,0.93528,blend across feature sets,/Users/vl/BT4012_Fraud/submissions/20260926-053917_fsblend_cmp_avl_raw_cmp.csv
+lgbm,lgbm_balanced,raw_cmp,,20260926-053614-probe_lgbm_s10probe,0.98251,0.93366,a different library on the best feature set,/Users/vl/BT4012_Fraud/submissions/20260926-053638_lgbm_balanced_raw_cmp.csv
+fsblend_cmp_avl_all,fsblend_cmp_avl_all,raw_cmp,,20260926-054011-probe_fsblend_cmp_avl_all_s10probe,0.98324,0.93362,three-way blend across feature sets,/Users/vl/BT4012_Fraud/submissions/20260926-054122_fsblend_cmp_avl_all_raw_cmp.csv
+avl,hgb_balanced,raw_avl,,20260926-053315-probe_avl_s10probe,0.98425,0.93307,"best multi-horizon feature set in Stage 5 (0.9331), never submitted",/Users/vl/BT4012_Fraud/submissions/20260926-053342_hgb_balanced_raw_avl.csv
+avl_cmp,hgb_balanced,raw_avl_cmp,,20260926-053401-probe_avl_cmp_s10probe,0.98398,0.92908,the two useful graph groups together,/Users/vl/BT4012_Fraud/submissions/20260926-053429_hgb_balanced_raw_avl_cmp.csv
+all,hgb_balanced,raw_all,,20260926-053448-probe_all_s10probe,0.98134,0.92874,best fold mean in Stage 3; keeps the time-encoding features,/Users/vl/BT4012_Fraud/submissions/20260926-053512_hgb_balanced_raw_all.csv
