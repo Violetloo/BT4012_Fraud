@@ -1,0 +1,4 @@
+candidate,model,features,run_id,auc_fold_mean,auc_mh_mean,why,submission_file
+lgbm_avl_cmp,lgbm_balanced,raw_avl_cmp,20260929-081809-confirm_lgbm_avl_cmp_s10conf,0.98376,0.93092,"winning features, second library",/Users/vl/BT4012_Fraud/submissions/20260929-081828_lgbm_balanced_raw_avl_cmp.csv
+blend_avl_cmp,blend_hgb75_lgbm25,raw_avl_cmp,20260929-081858-confirm_blend_avl_cmp_s10conf,0.98415,0.92999,"winning features, best-scoring blend",/Users/vl/BT4012_Fraud/submissions/20260929-081937_blend_hgb75_lgbm25_raw_avl_cmp.csv
+g2,hgb_balanced,raw_g2,20260929-081956-confirm_g2_s10conf,0.98331,0.92541,availability without the component features,/Users/vl/BT4012_Fraud/submissions/20260929-082024_hgb_balanced_raw_g2.csv
