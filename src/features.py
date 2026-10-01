@@ -8,6 +8,7 @@ from pathlib import Path
 
 from src.data import REPO_ROOT, raw_feature_columns
 from src.graph_features import group_columns
+from src.propagation import propagated_columns
 from src.transforms import matched_rank_columns, rank_columns
 
 # Features to drop, written by stage6/adversarial_validation.py. Absent until then.
@@ -49,6 +50,17 @@ FEATURE_SETS = {
 # "drop" sets remove the most drift-prone raw features found by adversarial validation.
 NEEDS_RANKS = {"rank_cmp", "rankraw_cmp"}
 NEEDS_MATCHED_RANKS = {"rankm_cmp", "rankmraw_cmp"}
+# Stage 13: multi-hop propagated features (src/propagation.py)
+NEEDS_PROPAGATED = {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only"}
+FEATURE_SETS["prop1_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + propagated_columns(df, hops=(1,)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop2_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + propagated_columns(df, hops=(1, 2)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop2_avl_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                 + propagated_columns(df, hops=(1, 2))
+                                 + group_columns(df, ["avail", "comp"]))
+FEATURE_SETS["prop2_only"] = (lambda df: propagated_columns(df, hops=(1, 2))
+                              + group_columns(df, ["comp"]))
 FEATURE_SETS["rankm_cmp"] = lambda df: matched_rank_columns(df) + group_columns(df, ["comp"])
 FEATURE_SETS["rankmraw_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                                 + matched_rank_columns(df) + group_columns(df, ["comp"]))
@@ -59,7 +71,8 @@ for _n in (5, 10, 20):
     FEATURE_SETS[f"raw_cmp_drop{_n}"] = (lambda n: lambda df: (
         [c for c in raw_feature_columns(df, exclude_time_candidates=True) if c not in set(_drop_list(n))]
         + group_columns(df, ["comp"])))(_n)
-NEEDS_GRAPH |= {"rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",
+NEEDS_GRAPH |= {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only",
+                "rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",
                 "raw_cmp_drop5", "raw_cmp_drop10", "raw_cmp_drop20"}
 
 for _name, _groups in GRAPH_STAGES.items():
