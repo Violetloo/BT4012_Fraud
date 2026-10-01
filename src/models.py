@@ -20,7 +20,8 @@ from sklearn.pipeline import make_pipeline
 
 from src.ensembles import Blend, FeatureSetBlend, SeedEnsemble
 from src.adaptation import CovariateShiftWeighted, SelfTrainTarget
-from src.pseudo import PseudoLabel
+from src.pseudo import PseudoLabel, PUWeakNegatives
+from src.stacking import StackedEnsemble
 from sklearn.preprocessing import StandardScaler
 
 SEED = 42
@@ -247,6 +248,37 @@ def fsblend_cmp_avl_drop5():
 MODELS.update({"fsblend_cmp_avl": fsblend_cmp_avl, "fsblend_cmp_avl_all": fsblend_cmp_avl_all,
                "fsblend_cmp_avl_notime": fsblend_cmp_avl_notime, "fsblend_cmp2_avl1": fsblend_cmp2_avl1,
                "fsblend_cmp_avl_drop5": fsblend_cmp_avl_drop5})
+
+# --- stacking and positive-unlabelled learning (Stage 12) -----------------
+def pu_w01():
+    """Every unlabelled row added as a negative at weight 0.1."""
+    return PUWeakNegatives(base="hgb_balanced", unlabelled_weight=0.1, random_state=SEED)
+
+
+def pu_w005():
+    return PUWeakNegatives(base="hgb_balanced", unlabelled_weight=0.05, random_state=SEED)
+
+
+def pu_w03():
+    return PUWeakNegatives(base="hgb_balanced", unlabelled_weight=0.3, random_state=SEED)
+
+
+def stack_hgb_lgbm():
+    return StackedEnsemble(bases=("hgb_balanced", "lgbm_balanced"), random_state=SEED)
+
+
+def stack_three():
+    return StackedEnsemble(bases=("hgb_balanced", "lgbm_balanced", "rf_balanced"), random_state=SEED)
+
+
+def stack_four():
+    return StackedEnsemble(bases=("hgb_balanced", "lgbm_balanced", "xgb", "rf_balanced"),
+                           random_state=SEED)
+
+
+MODELS.update({"pu_w01": pu_w01, "pu_w005": pu_w005, "pu_w03": pu_w03,
+               "stack_hgb_lgbm": stack_hgb_lgbm, "stack_three": stack_three,
+               "stack_four": stack_four})
 
 # Blends are registered only when their members exist (LightGBM/XGBoost are optional).
 for _name, _factory, _needs in [("blend_hgb_lgbm", blend_hgb_lgbm, ["lgbm_balanced"]),

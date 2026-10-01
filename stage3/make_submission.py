@@ -73,6 +73,10 @@ args = p.parse_args()
 train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
 cols = get_feature_columns(args.features, train)
+if args.model.startswith("stack"):
+    from src.stacking import register_steps
+    register_steps(train["time_step"])
+    print("Registered row time steps for the stacking inner blocks")
 if args.model.startswith("fsblend"):
     from src.ensembles import register_views, union_columns
     from src.features import FEATURE_SETS
@@ -90,7 +94,7 @@ if args.model.startswith(("shift", "selftrain")):
     from src.adaptation import set_target
     set_target(test[cols])
     print(f"Target set to the {len(test):,} test rows (features only)")
-if args.model.startswith("pseudo"):
+if args.model.startswith(("pseudo", "pu_")):
     from src.pseudo import register_default_pool
     register_default_pool(train, cols)
     print(f"Registered the unlabelled pool ({int(train['label'].isna().sum()):,} rows)")

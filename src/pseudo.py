@@ -101,3 +101,51 @@ class PseudoLabel(BaseEstimator, ClassifierMixin):
 
     def predict_proba(self, X):
         return self.model_.predict_proba(X)
+
+
+class PUWeakNegatives(BaseEstimator, ClassifierMixin):
+    """Treat every unlabelled row as a weakly-weighted negative (positive-unlabelled learning).
+
+    Stage 8b added only CONFIDENT pseudo-labels and failed: thresholding selected rows
+    the model already agreed with, which reinforced its own boundary. The standard
+    positive-unlabelled treatment is different: unlabelled means "mostly negative but
+    unverified", so every unlabelled row is added as a negative with a small weight. No
+    threshold, no selection, and far more rows shaping the boundary.
+
+    The pool is restricted inside each fit to unlabelled rows at or before the last
+    training step, exactly as in Stage 8b, so a validation block's rows are never used.
+    """
+
+    def __init__(self, base="hgb_balanced", pool="train_unlabelled", unlabelled_weight=0.1,
+                 max_rows=None, random_state=SEED):
+        self.base = base
+        self.pool = pool
+        self.unlabelled_weight = unlabelled_weight
+        self.max_rows = max_rows
+        self.random_state = random_state
+
+    def fit(self, X, y):
+        from src.models import get_model_factory
+        if self.pool not in POOLS:
+            raise ValueError(f"pool '{self.pool}' is not registered; call register_default_pool first")
+        pool_X, pool_steps = POOLS[self.pool]
+        last_train_step = int(ROW_STEPS[self.pool].loc[X.index].max())
+        pool_X = pool_X[pool_steps.reindex(pool_X.index) <= last_train_step][X.columns]
+        if self.max_rows is not None and len(pool_X) > self.max_rows:
+            idx = np.random.default_rng(self.random_state).choice(len(pool_X), self.max_rows,
+                                                                  replace=False)
+            pool_X = pool_X.iloc[idx]
+        y = np.asarray(y)
+        X_aug = pd.concat([X, pool_X])
+        y_aug = np.r_[y, np.zeros(len(pool_X), dtype=int)]
+        w = np.r_[np.ones(len(X)), np.full(len(pool_X), self.unlabelled_weight)]
+        FIT_LOG.append({"model": "pu_weak_negatives", "last_train_step": last_train_step,
+                        "n_labelled": int(len(X)), "n_unlabelled_added": int(len(pool_X)),
+                        "unlabelled_weight": self.unlabelled_weight,
+                        "effective_extra_weight": float(self.unlabelled_weight * len(pool_X))})
+        self.model_ = get_model_factory(self.base)().fit(X_aug, y_aug, sample_weight=w)
+        self.classes_ = self.model_.classes_
+        return self
+
+    def predict_proba(self, X):
+        return self.model_.predict_proba(X)
