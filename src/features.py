@@ -51,7 +51,11 @@ FEATURE_SETS = {
 NEEDS_RANKS = {"rank_cmp", "rankraw_cmp"}
 NEEDS_MATCHED_RANKS = {"rankm_cmp", "rankmraw_cmp"}
 # Stage 13: multi-hop propagated features (src/propagation.py)
-NEEDS_PROPAGATED = {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only"}
+NEEDS_PROPAGATED = {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only", "prop3_cmp", "prop23_cmp"}
+FEATURE_SETS["prop3_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + propagated_columns(df, hops=(1, 2, 3)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop23_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                              + propagated_columns(df, hops=(2, 3)) + group_columns(df, ["comp"]))
 FEATURE_SETS["prop1_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                              + propagated_columns(df, hops=(1,)) + group_columns(df, ["comp"]))
 FEATURE_SETS["prop2_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
@@ -71,7 +75,7 @@ for _n in (5, 10, 20):
     FEATURE_SETS[f"raw_cmp_drop{_n}"] = (lambda n: lambda df: (
         [c for c in raw_feature_columns(df, exclude_time_candidates=True) if c not in set(_drop_list(n))]
         + group_columns(df, ["comp"])))(_n)
-NEEDS_GRAPH |= {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only",
+NEEDS_GRAPH |= {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only", "prop3_cmp", "prop23_cmp",
                 "rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",
                 "raw_cmp_drop5", "raw_cmp_drop10", "raw_cmp_drop20"}
 
