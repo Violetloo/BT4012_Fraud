@@ -109,7 +109,17 @@ problems = []
 
 params_now = {k: _jsonable(v) for k, v in _params(model).items()}
 params_run = run.get("params", {})
-diff = sorted(k for k in set(params_now) | set(params_run) if params_now.get(k) != params_run.get(k))
+def _same(a, b):
+    # NaN != NaN in Python, so compare NaNs as equal (XGBoost's `missing` defaults to NaN)
+    try:
+        if a != a and b != b:
+            return True
+    except TypeError:
+        pass
+    return a == b
+
+
+diff = sorted(k for k in set(params_now) | set(params_run) if not _same(params_now.get(k), params_run.get(k)))
 if diff:
     problems.append(f"model parameters differ: {diff[:10]}")
 

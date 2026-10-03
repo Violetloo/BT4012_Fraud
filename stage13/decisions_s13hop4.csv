@@ -1,0 +1,4 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_prop2_cmp,-0.00049,0.00182,2,False,20261003-023457-hgb_balanced_prop2_cmp_s13hop4
+hgb_balanced_prop4_cmp,0.002,-0.00221,1,False,20261003-023711-hgb_balanced_prop4_cmp_s13hop4
+hgb_balanced_prop34_cmp,0.00387,-0.0051,1,False,20261003-023947-hgb_balanced_prop34_cmp_s13hop4

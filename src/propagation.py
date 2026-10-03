@@ -24,7 +24,7 @@ from src.data import REPO_ROOT, raw_feature_columns
 
 CACHE_PATH = REPO_ROOT / "data" / "derived" / "propagated_features.pkl"
 BUILDER_VERSION = 1
-PREFIXES = {1: "p1_", 2: "p2_", 3: "p3_"}
+PREFIXES = {1: "p1_", 2: "p2_", 3: "p3_", 4: "p4_"}
 
 
 def _fingerprint(*frames):
@@ -74,7 +74,7 @@ def build_propagated_features(train, test, edges, hops=2):
     return pd.concat(out.values(), axis=1)
 
 
-def build_or_load(train, test, edges, cache_path=CACHE_PATH, rebuild=False, hops=3, verbose=True):
+def build_or_load(train, test, edges, cache_path=CACHE_PATH, rebuild=False, hops=4, verbose=True):
     cache_path = Path(cache_path)
     meta = {"inputs": _fingerprint(train, test, edges), "builder_version": BUILDER_VERSION, "hops": hops}
     if cache_path.exists() and not rebuild:

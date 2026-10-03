@@ -1,0 +1,7 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+pu_w005_raw_cmp,-0.03913,-0.08013,0,False,20261001-021648-pu_w005_raw_cmp_s12v1
+pu_w01_raw_cmp,-0.02347,-0.06086,0,False,20261001-021912-pu_w01_raw_cmp_s12v1
+pu_w03_raw_cmp,-0.02034,-0.07271,0,False,20261001-022114-pu_w03_raw_cmp_s12v1
+stack_hgb_lgbm_raw_cmp,0.00024,-0.00097,2,False,20261001-022414-stack_hgb_lgbm_raw_cmp_s12v1
+stack_three_raw_cmp,-0.00313,-0.01946,0,False,20261001-022846-stack_three_raw_cmp_s12v1
+stack_four_raw_cmp,-0.00201,-0.018,0,False,20261001-023402-stack_four_raw_cmp_s12v1
