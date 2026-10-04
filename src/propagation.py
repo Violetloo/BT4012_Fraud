@@ -24,7 +24,7 @@ from src.data import REPO_ROOT, raw_feature_columns
 
 CACHE_PATH = REPO_ROOT / "data" / "derived" / "propagated_features.pkl"
 BUILDER_VERSION = 1
-PREFIXES = {1: "p1_", 2: "p2_", 3: "p3_", 4: "p4_"}
+PREFIXES = {1: "p1_", 2: "p2_"}
 
 
 def _fingerprint(*frames):
@@ -74,7 +74,7 @@ def build_propagated_features(train, test, edges, hops=2):
     return pd.concat(out.values(), axis=1)
 
 
-def build_or_load(train, test, edges, cache_path=CACHE_PATH, rebuild=False, hops=4, verbose=True):
+def build_or_load(train, test, edges, cache_path=CACHE_PATH, rebuild=False, hops=2, verbose=True):
     cache_path = Path(cache_path)
     meta = {"inputs": _fingerprint(train, test, edges), "builder_version": BUILDER_VERSION, "hops": hops}
     if cache_path.exists() and not rebuild:
@@ -101,3 +101,107 @@ def attach(frame, propagated):
 def propagated_columns(df, hops=(1, 2)):
     prefixes = tuple(PREFIXES[h] for h in hops)
     return [c for c in df.columns if c.startswith(prefixes)]
+
+
+# ---------------------------------------------------------------------------
+# Directed and decayed propagation (Stage 14)
+#
+# The propagation above symmetrises the graph: a transaction's upstream and
+# downstream neighbourhoods are averaged together. In a payment graph those are
+# different things — where money came FROM and where it went TO — and laundering
+# patterns are directional. These builders keep them apart, and add a
+# personalised-PageRank variant that mixes all hop distances with a decay instead
+# of using one hop distance at a time.
+DIRECTED_CACHE_PATH = REPO_ROOT / "data" / "derived" / "directed_features.pkl"
+DIRECTED_BUILDER_VERSION = 1
+DIR_PREFIXES = {("in", 2): "din2_", ("in", 3): "din3_", ("in", 4): "din4_",
+                ("out", 2): "dout2_", ("out", 3): "dout3_", ("out", 4): "dout4_"}
+PPR_PREFIX = "ppr_"
+
+
+def _usable_matrix(train, test, edges):
+    """Shared setup: node table, usable mask, feature matrix and the edge endpoints."""
+    cols = raw_feature_columns(train, exclude_time_candidates=True)
+    nodes = pd.concat([train[["txId", "label"] + cols],
+                       test[["txId"] + cols].assign(label=1.0)], ignore_index=True)
+    usable = nodes["label"].notna().values
+    ids = nodes["txId"].values
+    pos = pd.Series(np.arange(len(ids)), index=ids)
+    e = edges.copy()
+    e.columns = ["src", "dst"]
+    e = e[e["src"].isin(pos.index) & e["dst"].isin(pos.index)]
+    si, di = pos.loc[e["src"]].values, pos.loc[e["dst"]].values
+    keep = usable[si] & usable[di]
+    X = nodes[cols].to_numpy(dtype="float32")
+    return ids, cols, X, si[keep], di[keep], len(ids)
+
+
+def _row_normalised(rows, cols_idx, n):
+    A = sparse.coo_matrix((np.ones(len(rows), "float32"), (rows, cols_idx)), shape=(n, n)).tocsr()
+    deg = np.asarray(A.sum(axis=1)).ravel()
+    inv = np.zeros_like(deg)
+    inv[deg > 0] = 1.0 / deg[deg > 0]
+    return sparse.diags(inv.astype("float32")) @ A, deg
+
+
+def build_directed_features(train, test, edges, hops=(2, 3, 4)):
+    """Propagate separately over incoming and outgoing edges."""
+    ids, cols, X, si, di, n = _usable_matrix(train, test, edges)
+    out = {}
+    for direction, (r, c) in [("in", (di, si)), ("out", (si, di))]:
+        P, deg = _row_normalised(r, c, n)
+        H = X
+        for hop in range(1, max(hops) + 1):
+            H = P @ H
+            if hop in hops:
+                frame = pd.DataFrame(H, index=pd.Index(ids, name="txId"),
+                                     columns=[f"{DIR_PREFIXES[(direction, hop)]}{c_}" for c_ in cols])
+                frame[deg == 0] = np.nan
+                out[(direction, hop)] = frame.astype("float32")
+    return pd.concat(out.values(), axis=1)
+
+
+def build_ppr_features(train, test, edges, alpha=0.15, iters=10):
+    """Personalised-PageRank propagation: H <- (1 - alpha) P H + alpha X.
+
+    One block of columns mixes every hop distance with a geometric decay, instead of
+    taking hop distances one at a time. alpha controls how fast influence falls off:
+    0.15 keeps a long tail, 0.5 stays local.
+    """
+    ids, cols, X, si, di, n = _usable_matrix(train, test, edges)
+    P, deg = _row_normalised(np.r_[si, di], np.r_[di, si], n)
+    H = X.copy()
+    for _ in range(iters):
+        H = (1 - alpha) * (P @ H) + alpha * X
+    frame = pd.DataFrame(H, index=pd.Index(ids, name="txId"),
+                         columns=[f"{PPR_PREFIX}{c}" for c in cols])
+    frame[deg == 0] = np.nan
+    return frame.astype("float32")
+
+
+def build_or_load_directed(train, test, edges, cache_path=DIRECTED_CACHE_PATH, rebuild=False,
+                           hops=(2, 3, 4), alpha=0.15, verbose=True):
+    """Directed hops and the PageRank block, cached together."""
+    cache_path = Path(cache_path)
+    meta = {"inputs": _fingerprint(train, test, edges), "builder_version": DIRECTED_BUILDER_VERSION,
+            "hops": list(hops), "alpha": alpha}
+    if cache_path.exists() and not rebuild:
+        cached = pd.read_pickle(cache_path)
+        if isinstance(cached, dict) and cached.get("meta") == meta:
+            return cached["features"]
+        if verbose:
+            print("Rebuilding directed/PPR features (different inputs or settings).")
+    feats = pd.concat([build_directed_features(train, test, edges, hops=hops),
+                       build_ppr_features(train, test, edges, alpha=alpha)], axis=1)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.to_pickle({"features": feats, "meta": meta}, cache_path)
+    return feats
+
+
+def directed_columns(df, directions=("in", "out"), hops=(2, 3, 4)):
+    prefixes = tuple(DIR_PREFIXES[(d, h)] for d in directions for h in hops if (d, h) in DIR_PREFIXES)
+    return [c for c in df.columns if c.startswith(prefixes)]
+
+
+def ppr_columns(df):
+    return [c for c in df.columns if c.startswith(PPR_PREFIX)]
