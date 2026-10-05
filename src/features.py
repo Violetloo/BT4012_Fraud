@@ -8,7 +8,8 @@ from pathlib import Path
 
 from src.data import REPO_ROOT, raw_feature_columns
 from src.graph_features import group_columns
-from src.propagation import directed_columns, ppr_columns, propagated_columns
+from src.propagation import (directed_columns, max_columns, ppr_columns, ppr_columns_alpha,
+                             propagated_columns, symmetric_columns)
 from src.transforms import matched_rank_columns, rank_columns
 
 # Features to drop, written by stage6/adversarial_validation.py. Absent until then.
@@ -61,7 +62,7 @@ FEATURE_SETS["prop2_avl_cmp"] = (lambda df: raw_feature_columns(df, exclude_time
                                  + group_columns(df, ["avail", "comp"]))
 # Stage 14: directed propagation (upstream vs downstream kept apart) and
 # personalised-PageRank propagation (all hop distances mixed with a decay).
-NEEDS_DIRECTED = {"dir34_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp", "dir34_avl_cmp"}
+NEEDS_DIRECTED = {"ppr05_cmp", "ppr30_cmp", "ppr_multi_cmp", "dir34_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp", "dir34_avl_cmp"}
 FEATURE_SETS["dir34_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                              + directed_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["dir34_avl_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
@@ -69,10 +70,37 @@ FEATURE_SETS["dir34_avl_cmp"] = (lambda df: raw_feature_columns(df, exclude_time
 FEATURE_SETS["dir34_prop34_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                                     + directed_columns(df) + propagated_columns(df, hops=(2, 3, 4))
                                     + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr05_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + ppr_columns_alpha(df, 0.05) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr30_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + ppr_columns_alpha(df, 0.3) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_multi_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                 + ppr_columns(df) + ppr_columns_alpha(df, 0.05)
+                                 + ppr_columns_alpha(df, 0.3) + group_columns(df, ["comp"]))
+NEEDS_STAGE15 = {"max_cmp", "ppr_max_cmp", "sym_cmp", "ppr_sym_cmp"}
+NEEDS_DIRECTED |= {"ppr_max_cmp", "ppr_sym_cmp"}
+FEATURE_SETS["max_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                           + max_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_max_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                               + ppr_columns(df) + max_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["sym_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                           + symmetric_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_sym_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                               + ppr_columns(df) + symmetric_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["ppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                            + ppr_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["dir34_ppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                                  + directed_columns(df) + ppr_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop3_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + propagated_columns(df, hops=(1, 2, 3)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop23_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                              + propagated_columns(df, hops=(2, 3)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop4_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + propagated_columns(df, hops=(1, 2, 3, 4)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop34_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                              + propagated_columns(df, hops=(2, 3, 4)) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop4only_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                 + propagated_columns(df, hops=(3, 4)) + group_columns(df, ["comp"]))
 FEATURE_SETS["prop2_only"] = (lambda df: propagated_columns(df, hops=(1, 2))
                               + group_columns(df, ["comp"]))
 FEATURE_SETS["rankm_cmp"] = lambda df: matched_rank_columns(df) + group_columns(df, ["comp"])
@@ -85,8 +113,9 @@ for _n in (5, 10, 20):
     FEATURE_SETS[f"raw_cmp_drop{_n}"] = (lambda n: lambda df: (
         [c for c in raw_feature_columns(df, exclude_time_candidates=True) if c not in set(_drop_list(n))]
         + group_columns(df, ["comp"])))(_n)
-NEEDS_GRAPH |= {"dir34_cmp", "dir34_avl_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp",
-                "prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only",
+NEEDS_GRAPH |= {"max_cmp", "ppr_max_cmp", "sym_cmp", "ppr_sym_cmp", "ppr05_cmp", "ppr30_cmp", "ppr_multi_cmp", "dir34_cmp", "dir34_avl_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp",
+                "prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only", "prop3_cmp", "prop23_cmp",
+                "prop4_cmp", "prop34_cmp", "prop4only_cmp",
                 "rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",
                 "raw_cmp_drop5", "raw_cmp_drop10", "raw_cmp_drop20"}
 

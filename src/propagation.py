@@ -205,3 +205,90 @@ def directed_columns(df, directions=("in", "out"), hops=(2, 3, 4)):
 
 def ppr_columns(df):
     return [c for c in df.columns if c.startswith(PPR_PREFIX)]
+
+
+# ---------------------------------------------------------------------------
+# Stage 15: max-propagation and symmetric normalisation
+#
+# Two things the mean-propagation above cannot express:
+#
+# 1. MEAN washes out a single extreme neighbour. For fraud the presence of one
+#    suspicious transaction nearby matters more than the average of the
+#    neighbourhood. Stage 8a already hinted at this: smoothing predictions with the
+#    neighbour MAX beat the neighbour mean. These builders propagate the max.
+# 2. ROW normalisation (D^-1 A) treats every neighbour of a node equally regardless
+#    of how connected that neighbour is. Symmetric normalisation (D^-1/2 A D^-1/2),
+#    the standard graph-convolution weighting, down-weights hub neighbours that
+#    connect to everything. Hubs are exactly what an exchange looks like here.
+MAXPROP_CACHE_PATH = REPO_ROOT / "data" / "derived" / "maxprop_features.pkl"
+SYM_CACHE_PATH = REPO_ROOT / "data" / "derived" / "sym_features.pkl"
+MAXPROP_VERSION = 1
+SYM_VERSION = 1
+MAX_PREFIXES = {1: "mx1_", 2: "mx2_"}
+SYM_PREFIX = "sym_"
+
+
+def build_max_features(train, test, edges, hops=(1, 2)):
+    """Propagate the MAX over usable neighbours, one and two hops."""
+    ids, cols, X, si, di, n = _usable_matrix(train, test, edges)
+    pairs = pd.DataFrame({"node": np.r_[si, di], "other": np.r_[di, si]})
+    H = pd.DataFrame(X, columns=cols)
+    out = {}
+    deg = np.bincount(pairs["node"].values, minlength=n)
+    for hop in range(1, max(hops) + 1):
+        joined = pairs.join(H, on="other")
+        H_new = joined.groupby("node")[cols].max()
+        H = H_new.reindex(range(n))          # nodes with no usable neighbour -> NaN
+        if hop in hops:
+            frame = H.copy()
+            frame.columns = [f"{MAX_PREFIXES[hop]}{c}" for c in cols]
+            frame.index = pd.Index(ids, name="txId")
+            out[hop] = frame.astype("float32")
+        H = H.fillna(pd.DataFrame(X, columns=cols))   # keep propagating from own values
+    return pd.concat(out.values(), axis=1)
+
+
+def build_symmetric_ppr(train, test, edges, alpha=0.15, iters=10):
+    """Personalised PageRank with symmetric normalisation D^-1/2 A D^-1/2."""
+    ids, cols, X, si, di, n = _usable_matrix(train, test, edges)
+    rows, cols_idx = np.r_[si, di], np.r_[di, si]
+    A = sparse.coo_matrix((np.ones(len(rows), "float32"), (rows, cols_idx)), shape=(n, n)).tocsr()
+    deg = np.asarray(A.sum(axis=1)).ravel()
+    inv_sqrt = np.zeros_like(deg)
+    inv_sqrt[deg > 0] = 1.0 / np.sqrt(deg[deg > 0])
+    D = sparse.diags(inv_sqrt.astype("float32"))
+    P = D @ A @ D
+    H = X.copy()
+    for _ in range(iters):
+        H = (1 - alpha) * (P @ H) + alpha * X
+    frame = pd.DataFrame(H, index=pd.Index(ids, name="txId"),
+                         columns=[f"{SYM_PREFIX}{c}" for c in cols])
+    frame[deg == 0] = np.nan
+    return frame.astype("float32")
+
+
+def build_or_load_stage15(train, test, edges, rebuild=False, alpha=0.15, verbose=True):
+    """Max-propagated and symmetric-PageRank blocks, cached together."""
+    cache_path = Path(MAXPROP_CACHE_PATH)
+    meta = {"inputs": _fingerprint(train, test, edges), "maxprop_version": MAXPROP_VERSION,
+            "sym_version": SYM_VERSION, "alpha": alpha}
+    if cache_path.exists() and not rebuild:
+        cached = pd.read_pickle(cache_path)
+        if isinstance(cached, dict) and cached.get("meta") == meta:
+            return cached["features"]
+        if verbose:
+            print("Rebuilding max/symmetric features (different inputs or settings).")
+    feats = pd.concat([build_max_features(train, test, edges),
+                       build_symmetric_ppr(train, test, edges, alpha=alpha)], axis=1)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.to_pickle({"features": feats, "meta": meta}, cache_path)
+    return feats
+
+
+def max_columns(df, hops=(1, 2)):
+    prefixes = tuple(MAX_PREFIXES[h] for h in hops)
+    return [c for c in df.columns if c.startswith(prefixes)]
+
+
+def symmetric_columns(df):
+    return [c for c in df.columns if c.startswith(SYM_PREFIX)]
