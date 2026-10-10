@@ -73,6 +73,13 @@ args = p.parse_args()
 train, test = load_prepared(args.data_dir, feature_sets=[args.features])
 sample = pd.read_csv(Path(args.data_dir) / "sample_submission.csv")
 cols = get_feature_columns(args.features, train)
+if args.model.startswith("two_stage"):
+    from src.data import load_data as _load_data
+    from src.two_stage import register_context, register_predict_context
+    _, _, _edges = _load_data(args.data_dir)
+    register_context(train, _edges)              # training rows: out-of-fold scores
+    register_predict_context(test)               # test rows: scored by a model never fitted on them
+    print("Registered two-stage contexts (train and test)")
 if args.model.startswith("stack"):
     from src.stacking import register_steps
     register_steps(train["time_step"])

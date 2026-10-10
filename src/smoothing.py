@@ -16,7 +16,7 @@ it is the test rows (about 61%). Neighbours with no score are simply skipped.
 import numpy as np
 import pandas as pd
 
-MODES = ("nbr_mean", "nbr_max", "comp_mean")
+MODES = ("nbr_mean", "nbr_max", "comp_mean", "ppr")
 
 
 def _undirected(edges, scored):
@@ -61,6 +61,13 @@ def smooth_scores(pred, tx_ids, edges, mode="nbr_mean", alpha=0.2, iters=1):
     s = pd.Series(np.asarray(pred, dtype=float), index=pd.Index(tx_ids, name="txId"))
     pairs = _undirected(edges, set(s.index))
     if pairs.empty:
+        return s.values
+    if mode == "ppr":
+        p0 = s.copy()
+        for _ in range(iters):
+            joined = pairs.assign(score=pairs["other"].map(s))
+            nbr = pd.Series(s.index.map(joined.groupby("node")["score"].mean()), index=s.index)
+            s = alpha * p0 + (1 - alpha) * nbr.fillna(s)
         return s.values
     if mode == "comp_mean":
         comp = _components(pairs, list(s.index))

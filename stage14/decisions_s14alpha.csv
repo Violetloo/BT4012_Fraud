@@ -1,0 +1,4 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_ppr05_cmp,-0.00235,-0.00646,0,False,20261004-052954-hgb_balanced_ppr05_cmp_s14alpha
+hgb_balanced_ppr30_cmp,0.00107,0.00485,3,True,20261004-053203-hgb_balanced_ppr30_cmp_s14alpha
+hgb_balanced_ppr_multi_cmp,-0.00062,0.00262,2,False,20261004-053438-hgb_balanced_ppr_multi_cmp_s14alpha

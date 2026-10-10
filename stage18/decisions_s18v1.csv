@@ -1,0 +1,6 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_disp_cmp,-0.00582,-0.00267,2,False,20261007-022025-hgb_balanced_disp_cmp_s18v1
+hgb_balanced_ppr_disp_cmp,-0.00111,-0.00227,1,False,20261007-022205-hgb_balanced_ppr_disp_cmp_s18v1
+hgb_balanced_ppr_z_cmp,-0.00098,-0.00322,1,False,20261007-022349-hgb_balanced_ppr_z_cmp_s18v1
+two_stage_ppr_ppr_cmp,-0.00221,0.0042,3,False,20261007-022604-two_stage_ppr_ppr_cmp_s18v1
+two_stage_ppr_local_ppr_cmp,-0.0004,0.00481,4,True,20261007-022921-two_stage_ppr_local_ppr_cmp_s18v1

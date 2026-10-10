@@ -1,0 +1,5 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_pprall_cmp,-0.00454,-0.00868,1,False,20261006-015506-hgb_balanced_pprall_cmp_s17v1
+hgb_balanced_pprrelay_cmp,-0.00414,-0.00867,0,False,20261006-015558-hgb_balanced_pprrelay_cmp_s17v1
+hgb_balanced_pprallrelay_cmp,-0.00454,-0.00868,1,False,20261006-015720-hgb_balanced_pprallrelay_cmp_s17v1
+hgb_balanced_ppr_pprallrelay_cmp,-0.00548,-0.01325,1,False,20261006-015915-hgb_balanced_ppr_pprallrelay_cmp_s17v1

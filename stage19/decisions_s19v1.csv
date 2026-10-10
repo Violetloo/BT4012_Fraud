@@ -1,0 +1,4 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_knn_cmp,0.00211,0.03657,4,True,20261008-023540-hgb_balanced_knn_cmp_s19v1
+hgb_balanced_ppr_knn_cmp,0.00071,0.03568,3,True,20261008-023635-hgb_balanced_ppr_knn_cmp_s19v1
+hgb_balanced_prop34_knn_cmp,-0.00028,0.0333,3,True,20261008-023757-hgb_balanced_prop34_knn_cmp_s19v1

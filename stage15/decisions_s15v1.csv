@@ -1,0 +1,5 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_max_cmp,-0.00399,-0.0046,2,False,20261005-010420-hgb_balanced_max_cmp_s15v1
+hgb_balanced_sym_cmp,-0.00416,-0.00136,2,False,20261005-010528-hgb_balanced_sym_cmp_s15v1
+hgb_balanced_ppr_max_cmp,-0.0039,-0.00646,2,False,20261005-010647-hgb_balanced_ppr_max_cmp_s15v1
+hgb_balanced_ppr_sym_cmp,-0.00118,-0.00608,1,False,20261005-010816-hgb_balanced_ppr_sym_cmp_s15v1

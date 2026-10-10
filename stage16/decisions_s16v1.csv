@@ -1,0 +1,4 @@
+config,d_fold_mean,d_mh_mean,splits_improved,passes_rule,run_id
+hgb_balanced_contrast_cmp,-0.002,0.00252,4,True,20261006-013418-hgb_balanced_contrast_cmp_s16v1
+hgb_balanced_ppr_contrast_cmp,0.00038,0.00293,3,True,20261006-013549-hgb_balanced_ppr_contrast_cmp_s16v1
+hgb_balanced_ppr_cppr_cmp,-0.00018,-0.00743,1,False,20261006-013720-hgb_balanced_ppr_cppr_cmp_s16v1

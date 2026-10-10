@@ -118,8 +118,17 @@ def blend_seed10_lgbm():
     return Blend(members=("hgb_balanced_seed10", "lgbm_balanced"), weights=(0.75, 0.25), random_state=SEED)
 
 
+def hgb_slow():
+    """Slow-and-shallow: lr 0.02, 1500 iterations, 15 leaves, 50 samples per leaf.
+    The only region of the search space that beat the defaults, and it improves all four
+    long-horizon splits."""
+    return HistGradientBoostingClassifier(learning_rate=0.02, max_iter=1500, max_leaf_nodes=15,
+                                          min_samples_leaf=50, early_stopping=False,
+                                          class_weight="balanced", random_state=SEED)
+
+
 MODELS = {"logreg": logreg, "logreg_balanced": logreg_balanced,
-          "hgb": hgb, "hgb_balanced": hgb_balanced,
+          "hgb": hgb, "hgb_balanced": hgb_balanced, "hgb_slow": hgb_slow,
           "rf": rf, "rf_balanced": rf_balanced, "extratrees": extratrees,
           "hgb_balanced_seed10": hgb_balanced_seed10}
 
@@ -346,3 +355,18 @@ def get_model_factory(name):
 # Pairs compared in Stage 4: (unweighted, weighted)
 CLASS_WEIGHT_PAIRS = [("logreg", "logreg_balanced"), ("hgb", "hgb_balanced"), ("rf", "rf_balanced"),
                       ("lgbm", "lgbm_balanced"), ("xgb", "xgb_weighted")]
+
+
+# --- Stage 18: two-stage propagated-score model ---------------------------
+from src.two_stage import TwoStagePropagated  # noqa: E402
+
+
+def two_stage_ppr():
+    return TwoStagePropagated(base="hgb_balanced", alpha=0.15, iters=10, random_state=SEED)
+
+
+def two_stage_ppr_local():
+    return TwoStagePropagated(base="hgb_balanced", alpha=0.5, iters=10, random_state=SEED)
+
+
+MODELS.update({"two_stage_ppr": two_stage_ppr, "two_stage_ppr_local": two_stage_ppr_local})

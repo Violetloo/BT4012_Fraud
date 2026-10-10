@@ -1,3 +1,4 @@
+from src.knn_features import knn_columns
 """Named feature sets. Later stages add graph features here.
 
 Rule for every feature builder: never use label values. Use only supplied
@@ -8,7 +9,7 @@ from pathlib import Path
 
 from src.data import REPO_ROOT, raw_feature_columns
 from src.graph_features import group_columns
-from src.propagation import (directed_columns, max_columns, ppr_columns, ppr_columns_alpha,
+from src.propagation import (fine_columns, dispersion_columns, population_columns, contrast_columns, directed_columns, max_columns, ppr_columns, ppr_columns_alpha,
                              propagated_columns, symmetric_columns)
 from src.transforms import matched_rank_columns, rank_columns
 
@@ -87,6 +88,70 @@ FEATURE_SETS["sym_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candi
                            + symmetric_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["ppr_sym_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                                + ppr_columns(df) + symmetric_columns(df) + group_columns(df, ["comp"]))
+NEEDS_CONTRAST = {"contrast_cmp", "ppr_contrast_cmp", "ppr_cppr_cmp"}
+FEATURE_SETS["contrast_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + contrast_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_contrast_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                    + ppr_columns(df) + contrast_columns(df)
+                                    + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_cppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + ppr_columns(df) + contrast_columns(df, kinds=("ppr",))
+                                + group_columns(df, ["comp"]))
+NEEDS_DIRECTED |= {"ppr_contrast_cmp", "ppr_cppr_cmp"}
+# Stage 17: propagation populations (who takes part in the graph).
+NEEDS_POPULATION = {"pprall_cmp", "pprrelay_cmp", "pprallrelay_cmp", "ppr_pprallrelay_cmp"}
+FEATURE_SETS["pprall_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                              + population_columns(df, "all") + group_columns(df, ["comp"]))
+FEATURE_SETS["pprrelay_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + population_columns(df, "relay") + group_columns(df, ["comp"]))
+FEATURE_SETS["pprallrelay_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                   + population_columns(df, "all_relay") + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_pprallrelay_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                       + ppr_columns(df) + population_columns(df, "all_relay")
+                                       + group_columns(df, ["comp"]))
+NEEDS_DIRECTED |= {"ppr_pprallrelay_cmp"}
+# Stage 18: neighbourhood dispersion (how varied the neighbourhood is, and how far the
+# transaction sits from it in those units).
+NEEDS_DISPERSION = {"disp_cmp", "ppr_disp_cmp", "ppr_z_cmp"}
+FEATURE_SETS["disp_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                            + dispersion_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_disp_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + ppr_columns(df) + dispersion_columns(df)
+                                + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_z_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                             + ppr_columns(df) + dispersion_columns(df, kinds=("z",))
+                             + group_columns(df, ["comp"]))
+NEEDS_DIRECTED |= {"ppr_disp_cmp", "ppr_z_cmp"}
+# Stage 19: similarity-neighbour label features (src/knn_features.py). These are the
+# only features that carry LABEL information to the test rows: the payment graph cannot,
+# because every edge lies inside one time step.
+NEEDS_KNN = {"knn_cmp", "ppr_knn_cmp", "prop34_knn_cmp", "ppr_multi_knn_cmp"}
+FEATURE_SETS["knn_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                           + knn_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_knn_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                               + ppr_columns(df) + knn_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["prop34_knn_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                  + propagated_columns(df, hops=(2, 3, 4)) + knn_columns(df)
+                                  + group_columns(df, ["comp"]))
+NEEDS_DIRECTED |= {"ppr_knn_cmp"}
+NEEDS_PROPAGATED |= {"prop34_knn_cmp"}
+# Stage 20. Both sets below extend something the LEADERBOARD rewarded, not something
+# validation liked: the best single model mixes PageRank decays, and the best submission
+# blends the PageRank and discrete-hop representations.
+NEEDS_FINE = {"ppr_fine_cmp", "ppr_fine_multi_cmp", "ppr_multi_prop34_cmp"}
+FEATURE_SETS["ppr_fine_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + ppr_columns(df) + fine_columns(df) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_fine_multi_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                      + ppr_columns(df) + ppr_columns_alpha(df, 0.05)
+                                      + ppr_columns_alpha(df, 0.3) + fine_columns(df)
+                                      + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_multi_prop34_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                        + ppr_columns(df) + ppr_columns_alpha(df, 0.05)
+                                        + ppr_columns_alpha(df, 0.3)
+                                        + propagated_columns(df, hops=(2, 3, 4))
+                                        + group_columns(df, ["comp"]))
+NEEDS_DIRECTED |= {"ppr_fine_cmp", "ppr_fine_multi_cmp", "ppr_multi_prop34_cmp"}
+NEEDS_PROPAGATED |= {"ppr_multi_prop34_cmp"}
 FEATURE_SETS["ppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                            + ppr_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["dir34_ppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
@@ -113,7 +178,7 @@ for _n in (5, 10, 20):
     FEATURE_SETS[f"raw_cmp_drop{_n}"] = (lambda n: lambda df: (
         [c for c in raw_feature_columns(df, exclude_time_candidates=True) if c not in set(_drop_list(n))]
         + group_columns(df, ["comp"])))(_n)
-NEEDS_GRAPH |= {"max_cmp", "ppr_max_cmp", "sym_cmp", "ppr_sym_cmp", "ppr05_cmp", "ppr30_cmp", "ppr_multi_cmp", "dir34_cmp", "dir34_avl_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp",
+NEEDS_GRAPH |= {"ppr_fine_cmp", "ppr_fine_multi_cmp", "ppr_multi_prop34_cmp", "knn_cmp", "ppr_knn_cmp", "prop34_knn_cmp", "disp_cmp", "ppr_disp_cmp", "ppr_z_cmp", "pprall_cmp", "pprrelay_cmp", "pprallrelay_cmp", "ppr_pprallrelay_cmp", "contrast_cmp", "ppr_contrast_cmp", "ppr_cppr_cmp", "max_cmp", "ppr_max_cmp", "sym_cmp", "ppr_sym_cmp", "ppr05_cmp", "ppr30_cmp", "ppr_multi_cmp", "dir34_cmp", "dir34_avl_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp",
                 "prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only", "prop3_cmp", "prop23_cmp",
                 "prop4_cmp", "prop34_cmp", "prop4only_cmp",
                 "rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",

@@ -1,0 +1,6 @@
+config,n_features,auc_fold_mean,auc_fold_min,auc_horizon,auc_weak_steps,auc_h15,auc_h18,auc_h21,auc_h24,auc_mh_mean,auc_mh_min,run_id
+hgb_balanced_ppr_cmp,321,0.98655,0.96311,0.90561,0.77862,0.93553,0.90795,0.90561,0.99662,0.93643,0.90561,20261005-010305-hgb_balanced_ppr_cmp_s15v1
+hgb_balanced_max_cmp,480,0.98256,0.94392,0.89423,0.75443,0.92208,0.9141,0.89423,0.99689,0.93182,0.89423,20261005-010420-hgb_balanced_max_cmp_s15v1
+hgb_balanced_sym_cmp,321,0.98239,0.9449,0.90118,0.77407,0.94905,0.89341,0.90118,0.99663,0.93507,0.89341,20261005-010528-hgb_balanced_sym_cmp_s15v1
+hgb_balanced_ppr_max_cmp,639,0.98265,0.94645,0.88621,0.73637,0.94129,0.89574,0.88621,0.99663,0.92997,0.88621,20261005-010647-hgb_balanced_ppr_max_cmp_s15v1
+hgb_balanced_ppr_sym_cmp,480,0.98537,0.95837,0.89306,0.75787,0.9411,0.89078,0.89306,0.99644,0.93035,0.89078,20261005-010816-hgb_balanced_ppr_sym_cmp_s15v1
