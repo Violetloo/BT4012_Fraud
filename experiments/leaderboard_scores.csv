@@ -1,0 +1,23 @@
+submission,public_lb,notes
+blend_best_plus_fine,0.96124,final selection - blend of 4 models
+blend_best_plus_multi,0.96120,final selection
+blend_ppr_p34_p4o,0.96074,three-way blend
+blend_ppr_prop34,0.96085,
+ppr_fine_multi_cmp,0.96066,six PageRank decays
+ppr_multi_cmp,0.96057,three PageRank decays
+ppr_cmp,0.96034,PageRank alpha 0.15
+prop34_cmp,0.95937,hops 2-4
+prop4only_cmp,0.95884,hops 3-4
+lgbm_balanced_ppr_cmp,0.95858,
+prop4_cmp,0.95777,hops 1-4
+ppr30_cmp,0.95769,alpha 0.30
+blend_prop2_hgb_xgb,0.95729,
+prop2_cmp,0.95670,hops 1-2
+prop3_cmp,0.95643,
+hgb_slow_ppr_cmp,0.95561,slow-shallow tuning
+xgb_prop2_cmp,0.95562,
+blend_avlcmp_prop2,0.95532,
+raw_avl_cmp,0.95060,
+knn_cmp_fixed,0.95063,similarity label features
+hgb_balanced_raw_cmp,0.94864,
+gnn_sage,0.88213,GraphSAGE
