@@ -127,8 +127,16 @@ def hgb_slow():
                                           class_weight="balanced", random_state=SEED)
 
 
+def hgb_bins127():
+    """127 histogram bins instead of 255: fewer split points, less sensitivity to fine
+    distinctions that shift between periods."""
+    return HistGradientBoostingClassifier(learning_rate=0.05, max_iter=300, max_leaf_nodes=31,
+                                          min_samples_leaf=20, max_bins=127, early_stopping=False,
+                                          class_weight="balanced", random_state=SEED)
+
+
 MODELS = {"logreg": logreg, "logreg_balanced": logreg_balanced,
-          "hgb": hgb, "hgb_balanced": hgb_balanced, "hgb_slow": hgb_slow,
+          "hgb": hgb, "hgb_balanced": hgb_balanced, "hgb_bins127": hgb_bins127, "hgb_slow": hgb_slow,
           "rf": rf, "rf_balanced": rf_balanced, "extratrees": extratrees,
           "hgb_balanced_seed10": hgb_balanced_seed10}
 

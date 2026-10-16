@@ -9,7 +9,7 @@ from pathlib import Path
 
 from src.data import REPO_ROOT, raw_feature_columns
 from src.graph_features import group_columns
-from src.propagation import (fine_columns, dispersion_columns, population_columns, contrast_columns, directed_columns, max_columns, ppr_columns, ppr_columns_alpha,
+from src.propagation import (iteration_columns, fine_columns, dispersion_columns, population_columns, contrast_columns, directed_columns, max_columns, ppr_columns, ppr_columns_alpha,
                              propagated_columns, symmetric_columns)
 from src.transforms import matched_rank_columns, rank_columns
 
@@ -53,7 +53,7 @@ FEATURE_SETS = {
 NEEDS_RANKS = {"rank_cmp", "rankraw_cmp"}
 NEEDS_MATCHED_RANKS = {"rankm_cmp", "rankmraw_cmp"}
 # Stage 13: multi-hop propagated features (src/propagation.py)
-NEEDS_PROPAGATED = {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only"}
+NEEDS_PROPAGATED = {"prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only", "prop3_cmp", "prop23_cmp", "prop4_cmp", "prop34_cmp", "prop4only_cmp"}
 FEATURE_SETS["prop1_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                              + propagated_columns(df, hops=(1,)) + group_columns(df, ["comp"]))
 FEATURE_SETS["prop2_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
@@ -152,6 +152,18 @@ FEATURE_SETS["ppr_multi_prop34_cmp"] = (lambda df: raw_feature_columns(df, exclu
                                         + group_columns(df, ["comp"]))
 NEEDS_DIRECTED |= {"ppr_fine_cmp", "ppr_fine_multi_cmp", "ppr_multi_prop34_cmp"}
 NEEDS_PROPAGATED |= {"ppr_multi_prop34_cmp"}
+# Stage 24: the number of propagation iterations, held against the current blocks.
+NEEDS_ITERS = {"ppr_i30_cmp", "ppr_i100_cmp", "ppr05_i100_cmp", "ppr_mixiters_cmp"}
+FEATURE_SETS["ppr_i30_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                               + iteration_columns(df, 0.15, 30) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_i100_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                + iteration_columns(df, 0.15, 100) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr05_i100_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                  + iteration_columns(df, 0.05, 100) + group_columns(df, ["comp"]))
+FEATURE_SETS["ppr_mixiters_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
+                                    + ppr_columns(df) + iteration_columns(df, 0.15, 100)
+                                    + group_columns(df, ["comp"]))
+NEEDS_DIRECTED |= {"ppr_mixiters_cmp"}
 FEATURE_SETS["ppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
                            + ppr_columns(df) + group_columns(df, ["comp"]))
 FEATURE_SETS["dir34_ppr_cmp"] = (lambda df: raw_feature_columns(df, exclude_time_candidates=True)
@@ -178,7 +190,7 @@ for _n in (5, 10, 20):
     FEATURE_SETS[f"raw_cmp_drop{_n}"] = (lambda n: lambda df: (
         [c for c in raw_feature_columns(df, exclude_time_candidates=True) if c not in set(_drop_list(n))]
         + group_columns(df, ["comp"])))(_n)
-NEEDS_GRAPH |= {"ppr_fine_cmp", "ppr_fine_multi_cmp", "ppr_multi_prop34_cmp", "knn_cmp", "ppr_knn_cmp", "prop34_knn_cmp", "disp_cmp", "ppr_disp_cmp", "ppr_z_cmp", "pprall_cmp", "pprrelay_cmp", "pprallrelay_cmp", "ppr_pprallrelay_cmp", "contrast_cmp", "ppr_contrast_cmp", "ppr_cppr_cmp", "max_cmp", "ppr_max_cmp", "sym_cmp", "ppr_sym_cmp", "ppr05_cmp", "ppr30_cmp", "ppr_multi_cmp", "dir34_cmp", "dir34_avl_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp",
+NEEDS_GRAPH |= {"ppr_i30_cmp", "ppr_i100_cmp", "ppr05_i100_cmp", "ppr_mixiters_cmp", "ppr_fine_cmp", "ppr_fine_multi_cmp", "ppr_multi_prop34_cmp", "knn_cmp", "ppr_knn_cmp", "prop34_knn_cmp", "disp_cmp", "ppr_disp_cmp", "ppr_z_cmp", "pprall_cmp", "pprrelay_cmp", "pprallrelay_cmp", "ppr_pprallrelay_cmp", "contrast_cmp", "ppr_contrast_cmp", "ppr_cppr_cmp", "max_cmp", "ppr_max_cmp", "sym_cmp", "ppr_sym_cmp", "ppr05_cmp", "ppr30_cmp", "ppr_multi_cmp", "dir34_cmp", "dir34_avl_cmp", "dir34_prop34_cmp", "ppr_cmp", "dir34_ppr_cmp",
                 "prop1_cmp", "prop2_cmp", "prop2_avl_cmp", "prop2_only", "prop3_cmp", "prop23_cmp",
                 "prop4_cmp", "prop34_cmp", "prop4only_cmp",
                 "rank_cmp", "rankraw_cmp", "rankm_cmp", "rankmraw_cmp",

@@ -21,3 +21,7 @@ raw_avl_cmp,0.95060,
 knn_cmp_fixed,0.95063,similarity label features
 hgb_balanced_raw_cmp,0.94864,
 gnn_sage,0.88213,GraphSAGE
+ppr_contrast_cmp,0.95882,User-confirmed public score
+contrast_cmp,0.95519,User-confirmed public score
+two_stage_ppr_local,0.95991,User-confirmed public score
+blend_best_plus_bins127,0.96137,NEW BEST - 5-model blend with 127-bin variant

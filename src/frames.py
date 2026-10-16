@@ -1,7 +1,7 @@
 """Load the competition data with any derived features the chosen feature sets need."""
 from src.data import DATA_DIR, load_data
 from src.features import (NEEDS_DIRECTED, NEEDS_GRAPH, NEEDS_MATCHED_RANKS, NEEDS_PROPAGATED,
-                          NEEDS_CONTRAST, NEEDS_POPULATION, NEEDS_DISPERSION, NEEDS_KNN, NEEDS_FINE, NEEDS_RANKS, NEEDS_STAGE15)
+                          NEEDS_CONTRAST, NEEDS_POPULATION, NEEDS_DISPERSION, NEEDS_KNN, NEEDS_FINE, NEEDS_ITERS, NEEDS_RANKS, NEEDS_STAGE15)
 from src import graph_features, propagation, transforms
 
 
@@ -60,6 +60,11 @@ def load_prepared(data_dir=DATA_DIR, feature_sets=(), rebuild=False, verbose=Tru
         train, test = propagation.attach(train, fine), propagation.attach(test, fine)
         if verbose:
             print(f"Attached {fine.shape[1]} fine-decay PageRank columns")
+    if sets & NEEDS_ITERS:
+        it = propagation.build_or_load_iters(train, test, edges, rebuild=rebuild, verbose=verbose)
+        train, test = propagation.attach(train, it), propagation.attach(test, it)
+        if verbose:
+            print(f"Attached {it.shape[1]} iteration-count columns")
     if sets & NEEDS_MATCHED_RANKS:
         m = transforms.build_or_load_matched(train, test, rebuild=rebuild, verbose=verbose)
         train, test = transforms.attach(train, m), transforms.attach(test, m)

@@ -195,7 +195,7 @@ def build_or_load_directed(train, test, edges, cache_path=DIRECTED_CACHE_PATH, r
     blocks = [build_directed_features(train, test, edges, hops=hops),
               build_ppr_features(train, test, edges, alpha=alpha)]
     for a in PPR_ALPHAS:
-        b = build_ppr_features(train, test, edges, alpha=a)
+        b = build_ppr_features(train, test, edges, alpha=a, iters=iters)
         b.columns = [c.replace(PPR_PREFIX, f"ppr{int(a * 100):02d}_") for c in b.columns]
         blocks.append(b)
     feats = pd.concat(blocks, axis=1)
@@ -557,23 +557,23 @@ FINE_ALPHAS = (0.10, 0.20, 0.25)
 def build_fine_ppr(train, test, edges, alphas=FINE_ALPHAS, iters=10):
     blocks = []
     for a in alphas:
-        b = build_ppr_features(train, test, edges, alpha=a)
+        b = build_ppr_features(train, test, edges, alpha=a, iters=iters)
         b.columns = [c.replace(PPR_PREFIX, f"pprf{int(a * 100):02d}_") for c in b.columns]
         blocks.append(b)
     return pd.concat(blocks, axis=1)
 
 
-def build_or_load_fine(train, test, edges, rebuild=False, verbose=True):
+def build_or_load_fine(train, test, edges, rebuild=False, verbose=True, iters=10):
     cache_path = Path(FINE_CACHE_PATH)
     meta = {"inputs": _fingerprint(train, test, edges), "version": FINE_VERSION,
-            "alphas": list(FINE_ALPHAS)}
+            "alphas": list(FINE_ALPHAS), "iters": iters}
     if cache_path.exists() and not rebuild:
         cached = pd.read_pickle(cache_path)
         if isinstance(cached, dict) and cached.get("meta") == meta:
             return cached["features"]
         if verbose:
             print("Rebuilding fine PageRank features (different inputs or settings).")
-    feats = build_fine_ppr(train, test, edges)
+    feats = build_fine_ppr(train, test, edges, iters=iters)
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     pd.to_pickle({"features": feats, "meta": meta}, cache_path)
     return feats
@@ -582,3 +582,46 @@ def build_or_load_fine(train, test, edges, rebuild=False, verbose=True):
 def fine_columns(df, alphas=FINE_ALPHAS):
     prefixes = tuple(f"pprf{int(a * 100):02d}_" for a in alphas)
     return [c for c in df.columns if c.startswith(prefixes)]
+
+
+# ---------------------------------------------------------------------------
+# Stage 24: iteration count as a parameter in its own right.
+#
+# Every PageRank block so far used ten iterations. That is not the converged
+# representation: the residual weight on the ten-hop term is (1 - alpha)^10, which is
+# 0.197 at alpha = 0.15 but 0.599 at alpha = 0.05. Both the number of iterations and
+# the decay shape the result, and only the decay was ever varied.
+ITERS_CACHE_PATH = REPO_ROOT / "data" / "derived" / "iters_features.pkl"
+ITERS_VERSION = 1
+# (alpha, iterations) -> column prefix
+ITER_SPECS = {(0.15, 30): "i15x30_", (0.15, 100): "i15x100_",
+              (0.05, 30): "i05x30_", (0.05, 100): "i05x100_"}
+
+
+def build_iteration_features(train, test, edges, specs=ITER_SPECS):
+    blocks = []
+    for (alpha, iters), prefix in specs.items():
+        b = build_ppr_features(train, test, edges, alpha=alpha, iters=iters)
+        b.columns = [c.replace(PPR_PREFIX, prefix) for c in b.columns]
+        blocks.append(b)
+    return pd.concat(blocks, axis=1)
+
+
+def build_or_load_iters(train, test, edges, rebuild=False, verbose=True):
+    cache_path = Path(ITERS_CACHE_PATH)
+    meta = {"inputs": _fingerprint(train, test, edges), "version": ITERS_VERSION,
+            "specs": sorted(f"{a}:{i}" for (a, i) in ITER_SPECS)}
+    if cache_path.exists() and not rebuild:
+        cached = pd.read_pickle(cache_path)
+        if isinstance(cached, dict) and cached.get("meta") == meta:
+            return cached["features"]
+        if verbose:
+            print("Rebuilding iteration-count features (different inputs or settings).")
+    feats = build_iteration_features(train, test, edges)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.to_pickle({"features": feats, "meta": meta}, cache_path)
+    return feats
+
+
+def iteration_columns(df, alpha, iters):
+    return [c for c in df.columns if c.startswith(ITER_SPECS[(alpha, iters)])]
