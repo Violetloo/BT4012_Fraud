@@ -195,7 +195,7 @@ def build_or_load_directed(train, test, edges, cache_path=DIRECTED_CACHE_PATH, r
     blocks = [build_directed_features(train, test, edges, hops=hops),
               build_ppr_features(train, test, edges, alpha=alpha)]
     for a in PPR_ALPHAS:
-        b = build_ppr_features(train, test, edges, alpha=a, iters=iters)
+        b = build_ppr_features(train, test, edges, alpha=a)
         b.columns = [c.replace(PPR_PREFIX, f"ppr{int(a * 100):02d}_") for c in b.columns]
         blocks.append(b)
     feats = pd.concat(blocks, axis=1)
